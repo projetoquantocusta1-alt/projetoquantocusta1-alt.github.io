@@ -123,7 +123,9 @@ def senadores(f: Fonte, ano: int) -> dict:
     if not r:
         raise ValueError(f"senadores: sem resumo de {ano}")
     md = r.get("meses_decorridos") or 0
-    cont = ritmo(ano, r.get("total") or 0, md)
+    pv = r.get("previsao") or {}
+    # usa a previsão do próprio site dos senadores (salário dos meses que faltam + 13º + cota no ritmo do ano)
+    cont = ritmo(ano, r.get("total") or 0, md, pv.get("restante") if pv.get("restante") is not None and md < 12 else None)
     hist, ult = [], None
     for a in anos:
         x = f.get(f"{a}/resumo.json")
