@@ -6,10 +6,18 @@ const nf = (v, d = 0) => (v || 0).toLocaleString("pt-BR", { minimumFractionDigit
 const brl = (v, d = 0) => "R$ " + nf(v, d);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const curto = (v) => { const a = Math.abs(v || 0);
-  if (a >= 1e9) return "R$ " + nf(v / 1e9, 2) + " bi";
-  if (a >= 1e6) return "R$ " + nf(v / 1e6, a >= 1e8 ? 0 : 1) + " mi";
+  if (a >= 1e12) return "R$ " + nf(v / 1e12, 2) + (a < 2e12 ? " trilhão" : " trilhões");
+  if (a >= 1e9) return "R$ " + nf(v / 1e9, 2) + (a < 2e9 ? " bilhão" : " bilhões");
+  if (a >= 1e6) return "R$ " + nf(v / 1e6, a >= 1e8 ? 0 : 1) + (a < 2e6 ? " milhão" : " milhões");
   if (a >= 1e3) return "R$ " + nf(v / 1e3, 0) + " mil";
   return brl(v, 2); };
+// valor por extenso para ler números grandes: 2.193.266.731 -> "≈ 2,19 bilhões de reais"
+const porExtenso = (v) => { const a = Math.abs(v || 0);
+  for (const [b, um, varios] of [[1e12, "trilhão", "trilhões"], [1e9, "bilhão", "bilhões"], [1e6, "milhão", "milhões"], [1e3, "mil", "mil"]]) {
+    if (a < b) continue;
+    const x = v / b, t = x.toLocaleString("pt-BR", { maximumFractionDigits: Math.abs(x) < 10 ? 2 : Math.abs(x) < 100 ? 1 : 0 });
+    return b === 1e3 ? `≈ ${t} mil reais` : `≈ ${t} ${Math.abs(x) < 2 ? um : varios} de reais`; }
+  return ""; };
 const pct = (x) => nf(x * 100, 1) + "%";
 const dataLocal = (iso) => { const [a, m, d] = iso.split("-").map(Number); return new Date(a, m - 1, d).getTime(); };
 
@@ -34,7 +42,8 @@ function contador(T) {
   $("#cont-nota").textContent = "Valor estimado em tempo real: soma o que já foi registrado e avança no ritmo de gasto do ano." +
     (mun && mun.em_coleta ? ` Municípios do Ceará: ${mun.cobertura} de ${mun.total_municipios} já têm dados de ${T.ano} (o robô ainda está coletando).` : "");
   const el = $("#contador");
-  const passo = () => { el.textContent = brl(cs.reduce((s, c) => s + valorAgora(c, Date.now()), 0)); requestAnimationFrame(passo); };
+  const ext = $("#contador-ext");
+  const passo = () => { const v = cs.reduce((s, c) => s + valorAgora(c, Date.now()), 0); el.textContent = brl(v); ext.textContent = porExtenso(v); requestAnimationFrame(passo); };
   passo();
 }
 

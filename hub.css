@@ -166,3 +166,8 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
   .busca button { padding: 0 14px; }
   .mapa-br .uf-rot { font-size: 20px; } .mapa-br .uf-rot.fora { font-size: 21px; }
 }
+
+/* leitura por extenso abaixo dos números grandes */
+.hero .extenso { font-size: 18px; }
+.extenso { margin: 2px 0 6px; font-size: 15px; font-weight: 700; color: #C84C4C; letter-spacing: .01em; }
+.extenso:empty { display: none; }
