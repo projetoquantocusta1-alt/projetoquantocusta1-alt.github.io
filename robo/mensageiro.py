@@ -1,0 +1,244 @@
+"""O Mensageiro: junta os números finais dos três sites num arquivo levíssimo para o hub.
+
+Não consulta nenhum site do governo. Só lê o que os robôs dos três repositórios já
+publicaram (pelo endereço público do GitHub) e grava dados/totais_hub.json.
+
+Uso:
+    python robo/mensageiro.py                       # lê do GitHub
+    python robo/mensageiro.py --local /pasta/com/os/3/repositorios   # teste com cópias locais
+
+Se uma esfera não responder, mantém o último número bom dela (do arquivo anterior).
+"""
+import argparse
+import json
+import re
+import sys
+import urllib.request
+from datetime import date, datetime, timezone
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parents[1]
+SAIDA = RAIZ / "dados" / "totais_hub.json"
+CONTA = "projetoquantocusta1-alt"
+REPOS = {"deputados": "quanto-custa-deputados", "senadores": "quanto-custa-senadores", "municipios": "quanto-custa-municipios"}
+SITE = "https://projetoquantocusta1-alt.github.io/{repo}/"
+RAW = "https://raw.githubusercontent.com/" + CONTA + "/{repo}/main/docs/dados/{caminho}"
+USER_AGENT = "ProjetoQuantoCusta/1.0 (painel de transparencia com dados abertos)"
+CADEIRAS = {"deputados": 513, "senadores": 81}
+
+# "O que dava pra fazer?": mesma regra provisória dos sites (80% destes grupos da cota)
+EXCESSO_PCT = 0.80
+GRUPOS_DEP = r"passage|ve[ií]cul|combust|fretamento|t[aá]xi|ped[aá]gio|sem nota|aliment|hosped|divulga"
+GRUPOS_SEN = r"locomo|passage|divulga"
+
+
+# ------------------------------------------------------------------ leitura
+class Fonte:
+    """Lê os JSON publicados de um repositório (GitHub ou pasta local)."""
+
+    def __init__(self, repo: str, local: Path | None = None):
+        self.repo, self.local, self.cache = repo, local, {}
+
+    def get(self, caminho: str, padrao=None):
+        if caminho in self.cache:
+            return self.cache[caminho]
+        try:
+            if self.local:
+                p = self.local / self.repo / "docs" / "dados" / caminho
+                v = json.loads(p.read_text("utf-8"))
+            else:
+                req = urllib.request.Request(RAW.format(repo=self.repo, caminho=caminho), headers={"User-Agent": USER_AGENT})
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    v = json.loads(r.read().decode("utf-8"))
+        except Exception:  # noqa: BLE001
+            v = padrao
+        self.cache[caminho] = v
+        return v
+
+
+def r2(x):
+    return round(float(x or 0), 2)
+
+
+def segundos_restantes(ano: int, mes_inicio: int) -> float:
+    """Segundos entre o 1º dia do mês seguinte aos dados e o fim do ano."""
+    ini = datetime(ano, mes_inicio + 1, 1) if mes_inicio < 12 else datetime(ano + 1, 1, 1)
+    return max(1.0, (datetime(ano + 1, 1, 1) - ini).total_seconds())
+
+
+def ritmo(ano: int, ja: float, meses: int, restante: float | None = None) -> dict:
+    """Contador: valor = ja + por_seg × (agora − inicio), até o teto (previsão do ano)."""
+    if meses <= 0:
+        return {"ja": r2(ja), "inicio": f"{ano}-01-01", "por_seg": 0.0, "teto": r2(ja)}
+    if meses >= 12:
+        return {"ja": r2(ja), "inicio": f"{ano + 1}-01-01", "por_seg": 0.0, "teto": r2(ja)}
+    if restante is None:
+        restante = ja / meses * (12 - meses)
+    return {"ja": r2(ja), "inicio": f"{ano}-{meses + 1:02d}-01",
+            "por_seg": round(restante / segundos_restantes(ano, meses), 4), "teto": r2(ja + restante)}
+
+
+def soma_categorias(cats: dict, regex: str) -> float:
+    rx = re.compile(regex, re.I)
+    return sum(v for k, v in (cats or {}).items() if rx.search(k))
+
+
+# ------------------------------------------------------------------ esferas
+def deputados(f: Fonte, ano: int) -> dict:
+    meta = f.get("meta.json") or {}
+    hist = (f.get("historico.json") or {}).get("anos") or []
+    r = f.get(f"{ano}/resumo.json")
+    if not r:
+        raise ValueError(f"deputados: sem resumo de {ano}")
+    p = r.get("previsao_camara") or {}
+    md = r.get("meses_decorridos") or 0
+    ja = p.get("ja_gasto") or r.get("total_camara") or 0
+    cont = ritmo(ano, ja, md, p.get("restante") if md < 12 else None)
+    if p.get("total_ano"):
+        cont["teto"] = r2(p["total_ano"])
+    fechados = [a for a in hist if a.get("meses_decorridos") == 12 and a["ano"] < ano]
+    ult = max(fechados, key=lambda a: a["ano"]) if fechados else None
+    pres = f.get(f"{ano}/presenca.json") or {}
+    dias = sum(v.get("dias", 0) for v in (pres.get("deputados") or {}).values())
+    faltas = sum(v.get("faltas", 0) for v in (pres.get("deputados") or {}).values())
+    base = soma_categorias(ult.get("categorias"), GRUPOS_DEP) * (ult.get("fator_ipca") or 1) if ult else 0
+    return {
+        "ano": ano, "total_ano": r2(ja), "previsto_ano": cont["teto"], "meses": md, "contador": cont,
+        "historico": [[a["ano"], r2(a.get("total_corrigido") or a.get("total")), a.get("meses_decorridos") == 12] for a in sorted(hist, key=lambda a: a["ano"])],
+        "desde": min((a["ano"] for a in hist), default=ano),
+        "cadeiras": CADEIRAS["deputados"],
+        "por_cadeira": {"ano": ult["ano"], "valor": r2(ult["total_corrigido"] / CADEIRAS["deputados"])} if ult else None,
+        "faltas_plenario": round(faltas / dias, 4) if dias else None,
+        "dava": {"ano": ult["ano"], "base": r2(base)} if ult else None,
+        "atualizado_em": meta.get("atualizado_em"), "url": SITE.format(repo=REPOS["deputados"]),
+    }
+
+
+def senadores(f: Fonte, ano: int) -> dict:
+    meta = f.get("meta.json") or {}
+    anos = sorted(meta.get("anos") or [])
+    r = f.get(f"{ano}/resumo.json")
+    if not r:
+        raise ValueError(f"senadores: sem resumo de {ano}")
+    md = r.get("meses_decorridos") or 0
+    cont = ritmo(ano, r.get("total") or 0, md)
+    hist, ult = [], None
+    for a in anos:
+        x = f.get(f"{a}/resumo.json")
+        if not x:
+            continue
+        fechado = bool(x.get("fechado")) or a < ano
+        hist.append([a, r2((x.get("total") or 0) * (x.get("fator_ipca") or 1)), fechado])
+        if fechado and a < ano:
+            ult = x
+    maior = max(r.get("senadores") or [], key=lambda s: (s.get("custos") or {}).get("ceaps", 0), default=None)
+    base = 0.0
+    if ult:
+        for s in ult.get("senadores") or []:
+            base += soma_categorias(s.get("categorias"), GRUPOS_SEN)
+        base *= ult.get("fator_ipca") or 1
+    return {
+        "ano": ano, "total_ano": r2(r.get("total")), "previsto_ano": cont["teto"], "meses": md, "contador": cont,
+        "historico": hist, "desde": anos[0] if anos else ano, "cadeiras": CADEIRAS["senadores"],
+        "cota_ano": r2(r.get("total_ceaps")),
+        "maior_cota": {"nome": maior.get("nome"), "valor": r2(maior["custos"]["ceaps"])} if maior else None,
+        "por_cadeira": {"ano": ult["ano"], "valor": r2(ult["total"] * (ult.get("fator_ipca") or 1) / CADEIRAS["senadores"])} if ult else None,
+        "dava": {"ano": ult["ano"], "base": r2(base)} if ult else None,
+        "atualizado_em": meta.get("gerado_em"), "url": SITE.format(repo=REPOS["senadores"]),
+    }
+
+
+def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
+    """Câmaras municipais + gabinetes do prefeito e do vice, nos municípios que já têm dados do ano."""
+    meta = f.get("meta.json") or {}
+    res = f.get("resumo.json") or {}
+    campos = res.get("campos") or []
+    ix = {c: i for i, c in enumerate(campos)}
+    fatores = {str(k): v for k, v in ((meta.get("ipca") or {}).get("fatores") or {}).items()}
+    total_mun = meta.get("total_municipios") or len(res.get("municipios") or []) or 184
+    por_ano: dict[str, list] = {}
+    ritmo_mensal = ja = 0.0
+    vereadores = cam_ano = 0.0
+    com_dados = 0
+    for m in res.get("municipios") or []:
+        for a, ln in (m.get("anos") or {}).items():
+            v = sum(ln[ix[c]] or 0 for c in ("camara", "gab_prefeito", "gab_vice"))
+            q = por_ano.setdefault(a, [0.0, 0])
+            q[0] += v
+            q[1] += 1
+            if int(a) == ano:
+                meses = (ln[ix["mes_ref"]] or 0) % 100
+                if meses:
+                    com_dados += 1
+                    ritmo_mensal += v / meses
+                    ja += v
+            if int(a) == ano - 1 and ln[ix["n_vereadores"]]:
+                vereadores += ln[ix["n_vereadores"]]
+                cam_ano += ln[ix["camara"]] or 0
+    # estimativa no mesmo instante para todos: média mensal de cada município × meses já fechados do ano
+    md = max(0, mes_atual - 1)
+    ja_est = ritmo_mensal * md if md else ja
+    cont = ritmo(ano, ja_est, md, ritmo_mensal * (12 - md))
+    hist = [[int(a), r2(v * fatores.get(a, 1)), n >= total_mun] for a, (v, n) in sorted(por_ano.items())]
+    return {
+        "ano": ano, "em_coleta": com_dados < total_mun, "cobertura": com_dados, "total_municipios": total_mun,
+        "total_ano": r2(ja_est), "registrado_ano": r2(ja), "previsto_ano": cont["teto"], "contador": cont,
+        "historico": hist, "desde": 2017,
+        "por_vereador": {"ano": ano - 1, "valor": r2(cam_ano * fatores.get(str(ano - 1), 1) / vereadores)} if vereadores else None,
+        "vereadores": int(vereadores) or None,
+        "atualizado_em": meta.get("gerado_em"), "url": SITE.format(repo=REPOS["municipios"]),
+    }
+
+
+# ------------------------------------------------------------------ principal
+def montar(local: Path | None = None, hoje: date | None = None, anterior: dict | None = None) -> dict:
+    hoje = hoje or date.today()
+    ano = hoje.year
+    anterior = anterior or {}
+    out = {"gerado_em": datetime.now(timezone.utc).isoformat(timespec="minutes"), "ano": ano, "esferas": {}, "status": {}}
+    fazer = {"deputados": lambda f: deputados(f, ano), "senadores": lambda f: senadores(f, ano),
+             "municipios": lambda f: municipios(f, ano, hoje.month)}
+    for nome, fn in fazer.items():
+        try:
+            out["esferas"][nome] = fn(Fonte(REPOS[nome], local))
+            out["status"][nome] = "ok"
+        except Exception as e:  # noqa: BLE001
+            velho = (anterior.get("esferas") or {}).get(nome)
+            if velho and velho.get("ano") == ano:
+                out["esferas"][nome] = velho
+                out["status"][nome] = f"mantido o último número bom ({e})"
+            else:
+                out["status"][nome] = f"indisponível ({e})"
+    es = out["esferas"]
+    out["contador"] = {k: v["contador"] for k, v in es.items()}
+    out["total_ano"] = r2(sum(v["total_ano"] for v in es.values()))
+    bases = [es[k]["dava"] for k in ("deputados", "senadores") if es.get(k, {}).get("dava")]
+    if bases:
+        base = sum(b["base"] for b in bases)
+        out["dava"] = {"ano": min(b["ano"] for b in bases), "base": r2(base), "excesso": r2(base * EXCESSO_PCT),
+                       "percentual": EXCESSO_PCT}
+    return out
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--local", type=Path, help="pasta com cópias dos 3 repositórios (teste)")
+    args = ap.parse_args(argv)
+    anterior = {}
+    if SAIDA.exists():
+        try:
+            anterior = json.loads(SAIDA.read_text("utf-8"))
+        except json.JSONDecodeError:
+            pass
+    out = montar(args.local, anterior=anterior)
+    if not out["esferas"]:
+        print("Nenhuma esfera respondeu; arquivo anterior mantido.", out["status"])
+        return 1
+    SAIDA.parent.mkdir(parents=True, exist_ok=True)
+    SAIDA.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), "utf-8")
+    print("totais_hub.json:", {k: v["total_ano"] for k, v in out["esferas"].items()}, out["status"])
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

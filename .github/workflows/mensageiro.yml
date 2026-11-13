@@ -1,0 +1,37 @@
+name: Mensageiro (totais do hub)
+
+on:
+  schedule:
+    - cron: "47 11 * * *"   # 08:47 em Brasília — depois de deputados e senadores
+    - cron: "7 15 * * *"    # 12:07 — depois do robô dos municípios (TCE)
+    - cron: "37 21 * * *"   # 18:37 — rodada de reforço
+  workflow_dispatch:         # botão "Run workflow"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mensageiro
+  cancel-in-progress: false
+
+jobs:
+  rodar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Juntar os totais dos três sites
+        run: python robo/mensageiro.py
+      - name: Publicar
+        run: |
+          git config user.name  "robo-quanto-custa"
+          git config user.email "actions@users.noreply.github.com"
+          git add dados
+          if ! git diff --cached --quiet; then
+            git commit -m "hub: totais de $(date -u +%Y-%m-%d)"
+            git pull --rebase -X ours origin main || true
+            git push
+          fi
