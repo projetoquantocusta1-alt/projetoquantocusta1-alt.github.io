@@ -14,5 +14,7 @@ Testes: `python -m pytest -q robo`. Teste com cópias locais: `python robo/mensa
 
 ## Fases
 1. Contador, cartões das esferas, "O que dava pra fazer?" (feito).
-2. Mapa por estado e busca por nome.
-3. Maiores notas da semana, fornecedores em mais de uma esfera, busca por CNPJ.
+2. Mapa por estado e busca por nome (feito).
+3. Maiores notas da semana, fornecedores em mais de uma esfera, busca por CNPJ (feito) — `robo/destaques.py`,
+   parte "pesada" que roda 1 vez por dia (`--completo`). Guarda em `robo/estado/` as notas já vistas de senadores
+   e municípios, para saber o que é novo.

@@ -17,19 +17,26 @@ concurrency:
 jobs:
   rodar:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Juntar os totais dos três sites
-        run: python robo/mensageiro.py
+        # a rodada das 12:07 (e o botão) faz também a parte pesada: notas da semana, fornecedores e CNPJ
+        run: |
+          if [ "${{ github.event.schedule }}" = "7 15 * * *" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python robo/mensageiro.py --completo
+          else
+            python robo/mensageiro.py
+          fi
       - name: Publicar
         run: |
           git config user.name  "robo-quanto-custa"
           git config user.email "actions@users.noreply.github.com"
-          git add dados
+          mkdir -p robo/estado
+          git add dados robo/estado
           if ! git diff --cached --quiet; then
             git commit -m "hub: totais de $(date -u +%Y-%m-%d)"
             git pull --rebase -X ours origin main || true

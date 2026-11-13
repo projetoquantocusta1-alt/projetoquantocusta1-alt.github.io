@@ -307,6 +307,7 @@ def montar(local: Path | None = None, hoje: date | None = None, anterior: dict |
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--local", type=Path, help="pasta com cópias dos 3 repositórios (teste)")
+    ap.add_argument("--completo", action="store_true", help="também a parte pesada: notas da semana, fornecedores e CNPJ")
     args = ap.parse_args(argv)
     anterior = {}
     if SAIDA.exists():
@@ -331,6 +332,13 @@ def main(argv=None):
         return 1
     SAIDA.parent.mkdir(parents=True, exist_ok=True)
     SAIDA.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), "utf-8")
+    if args.completo:
+        import destaques
+        try:
+            d = destaques.gerar(*fontes, ano, date.today(), {k: SITE.format(repo=v) for k, v in REPOS.items()}, SAIDA.parent)
+            print("destaques.json:", d["status"], f"{len(d['multi_esfera'])} fornecedores em mais de uma esfera, {d['cnpjs']} CNPJs")
+        except Exception as e:  # noqa: BLE001
+            print(f"destaques: falhou ({e}); arquivos anteriores mantidos")
     print("totais_hub.json:", {k: v["total_ano"] for k, v in out["esferas"].items()}, out["status"])
     return 0
 

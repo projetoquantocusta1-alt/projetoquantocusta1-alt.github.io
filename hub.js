@@ -145,18 +145,73 @@ async function iniciarEstados() {
   $("#mapa").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); escolher(e.target.dataset?.uf); } });
 }
 
+// ---------------------------------------------------------------- destaques (fase 3)
+const COR_ESF = { DEP: "var(--dep)", SEN: "var(--sen)", MUN: "var(--mun)" };
+const dataCurta = (iso) => (iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) : "");
+const fmtCnpj = (c) => c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+let DEST = null;
+async function carregarDestaques() {
+  if (DEST) return DEST;
+  try { const r = await fetch("dados/destaques.json", { cache: "no-cache" }); DEST = r.ok ? await r.json() : {}; } catch { DEST = {}; }
+  return DEST;
+}
+async function iniciarDestaques() {
+  const D = await carregarDestaques();
+  if (!D.ano) { $("#destaques").hidden = true; return; }
+  const ns = D.notas_semana || [];
+  $("#top-notas").innerHTML = ns.length ? ns.map(([e, v, oque, quem, onde, data, url]) =>
+    `<li><span class="o"><a href="${esc(url)}">${esc(oque)}</a><span class="q"><span class="etq" style="--c:${COR_ESF[e]}">${e}</span>${esc(quem)} · ${esc(onde)}${data ? " · " + dataCurta(data) : ""}</span></span><span class="v num">${brl(v, 2)}</span></li>`).join("")
+    : `<li class="sub">Nenhuma nota nova ainda. A contagem começou em ${new Date(D.gerado_em + "T12:00").toLocaleDateString("pt-BR")}: o robô compara, a cada dia, as notas publicadas com as que já tinha visto. As notas novas aparecem aqui a partir das próximas atualizações dos sites.</li>`;
+  const ms = D.multi_esfera || [];
+  $("#multi").innerHTML = ms.length ? ms.slice(0, 5).map(([raiz, nome, c14, tot, dep, sen, mun, filiais]) => {
+    const q = [dep[0] ? `<span class="etq" style="--c:var(--dep)">DEP</span>${nf(dep[1])} deputado(s)` : "",
+               sen[0] ? `<span class="etq" style="--c:var(--sen)">SEN</span>${nf(sen[1])} senador(es)` : "",
+               mun[0] ? `<span class="etq" style="--c:var(--mun)">MUN</span>${nf(mun[1])} prefeitura(s)${mun[2] ? ` · ${nf(mun[2])} câmara(s)` : ""}` : ""].filter(Boolean).join(" · ");
+    return `<li><span class="o"><button class="link" data-cnpj="${c14}">${esc(nome)}</button><span class="q">${q}${filiais > 1 ? ` · ${nf(filiais)} CNPJs (matriz e filiais)` : ""}</span></span><span class="v num">${curto(tot)}</span></li>`; }).join("")
+    : `<li class="sub">Nenhuma empresa paga por mais de uma esfera em ${D.ano} até agora.</li>`;
+}
+
+// ficha rápida de uma empresa (índice de CNPJ do Mensageiro)
+const GRUPOS = {};
+async function cnpjGrupo(pref) {
+  if (!GRUPOS[pref]) GRUPOS[pref] = fetch(`dados/cnpj/${pref}.json`, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+  return GRUPOS[pref];
+}
+async function abrirEmpresa(c14) {
+  const g = await cnpjGrupo(c14.slice(0, 2)), x = g[c14], ano = (await carregarDestaques()).ano || "";
+  const corpo = $("#empresa-corpo");
+  if (!x) { corpo.innerHTML = `<h3>${fmtCnpj(c14)}</h3><p class="sub">Este CNPJ não recebeu da cota de deputados e senadores nem das prefeituras do Ceará em ${ano}.</p>`; }
+  else {
+    const [nome, dep, sen, mun, cidades, nCid] = x;
+    const linha = (etq, cor, txt, v, lk) => `<tr><td><span class="etq" style="--c:${cor}">${etq}</span>${txt}${v && lk ? `<a href="${lk}">ver notas →</a>` : ""}</td><td class="v">${v ? brl(v, 2) : "—"}</td></tr>`;
+    corpo.innerHTML = `<p class="sub">Empresa · ${ano}</p><h3>${esc(nome)}</h3><p class="sub">CNPJ ${fmtCnpj(c14)}</p>
+      <table><tbody>
+      ${linha("DEP", "var(--dep)", "Cota dos deputados federais", dep, `${SITES.dep}?ano=${ano}#forn-${c14}`)}
+      ${linha("SEN", "var(--sen)", "Cota dos senadores", sen, `${SITES.sen}?ano=${ano}#forn-${c14}`)}
+      ${linha("MUN", "var(--mun)", `Prefeituras do Ceará${nCid ? ` (${nf(nCid)} cidade(s))` : ""}`, mun, "")}
+      ${cidades.map(([sim, cid, v]) => `<tr><td style="padding-left:18px"><a href="${SITES.mun}#municipio/${sim}" style="margin:0">${esc(cid)}</a></td><td class="v">${brl(v, 2)}</td></tr>`).join("")}
+      </tbody></table>
+      <p class="sub">Valores de ${ano} até agora, como publicados. O cadastro da empresa na Receita Federal (sócios, abertura, situação) está na ficha do fornecedor nos sites de deputados e senadores.</p>`;
+  }
+  $("#empresa").showModal();
+}
+
 // ---------------------------------------------------------------- busca
-const TIPOS = { D: ["DEP", "var(--dep)"], S: ["SEN", "var(--sen)"], P: ["PREF", "var(--mun)"], V: ["VER", "var(--mun)"], C: ["CIDADE", "#5B6B7E"] };
-const ORDEM = { D: 0, S: 1, C: 2, P: 3, V: 4 };
+const TIPOS = { E: ["EMPRESA", "#5B6B7E"], D: ["DEP", "var(--dep)"], S: ["SEN", "var(--sen)"], P: ["PREF", "var(--mun)"], V: ["VER", "var(--mun)"], C: ["CIDADE", "#5B6B7E"] };
+const ORDEM = { D: 0, S: 1, C: 2, P: 3, V: 4, E: 5 };
 const norm = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 let BUSCA = null;
 async function carregarBusca() {
   if (BUSCA) return BUSCA;
   try { const r = await fetch("dados/busca.json", { cache: "no-cache" }); BUSCA = (await r.json()).map((x) => [...x, norm(x[1] + " " + x[2])]); }
   catch { BUSCA = []; }
+  // empresas: as maiores do ano (busca por nome); por CNPJ, a busca usa o índice completo
+  const D = await carregarDestaques();
+  (D.empresas || []).forEach(([c, nome]) => BUSCA.push(["E", nome, fmtCnpj(c), c, norm(nome + " " + c)]));
   return BUSCA;
 }
 function link(x) {
+  if (x[0] === "E") return "#";
   if (x[0] === "D") return `${SITES.dep}?ano=total#dep-${x[3]}`;
   if (x[0] === "S") return `${SITES.sen}?ano=${x[4]}#sen-${x[3]}`;
   return `${SITES.mun}#municipio/${x[3]}`;
@@ -164,12 +219,21 @@ function link(x) {
 async function buscar() {
   const q = norm($("#busca-q").value.trim()), ul = $("#busca-lista");
   if (q.length < 2) { ul.hidden = true; return []; }
+  const dig = q.replace(/\D/g, "");
+  if (dig.length >= 8 && dig.length >= q.replace(/[\s./-]/g, "").length - 1) {          // CNPJ
+    const g = await cnpjGrupo(dig.slice(0, 2));
+    const r = Object.entries(g).filter(([c]) => c.startsWith(dig)).slice(0, 12).map(([c, x]) => ["E", x[0], fmtCnpj(c), c]);
+    ul.innerHTML = r.length ? r.map((x, i) => `<li><a href="#" data-cnpj="${x[3]}" class="${i ? "" : "ativo"}"><span class="t" style="--c:#5B6B7E">CNPJ</span><span>${esc(x[1])}<small>${x[2]}</small></span></a></li>`).join("")
+      : `<li class="vazio">Nenhum pagamento a este CNPJ em ${(await carregarDestaques()).ano || "este ano"} nas três esferas.</li>`;
+    ul.hidden = false;
+    return r;
+  }
   const L = await carregarBusca(), ps = q.split(/\s+/);
   const nomeN = (x) => x[x.length - 1];
   const r = L.filter((x) => ps.every((p) => nomeN(x).includes(p)))
     .sort((a, b) => (norm(b[1]).startsWith(q) - norm(a[1]).startsWith(q)) || ORDEM[a[0]] - ORDEM[b[0]] || (a[2].startsWith("vice") - b[2].startsWith("vice")) || a[1].localeCompare(b[1])).slice(0, 12);
   ul.innerHTML = r.length ? r.map((x, i) => { const [t, c] = TIPOS[x[0]];
-      return `<li><a href="${link(x)}" class="${i ? "" : "ativo"}"><span class="t" style="--c:${c}">${t}</span><span>${esc(x[1])}<small>${esc(x[2])}</small></span></a></li>`; }).join("")
+      return `<li><a href="${link(x)}"${x[0] === "E" ? ` data-cnpj="${x[3]}"` : ""} class="${i ? "" : "ativo"}"><span class="t" style="--c:${c}">${t}</span><span>${esc(x[1])}<small>${esc(x[2])}</small></span></a></li>`; }).join("")
     : `<li class="vazio">Nada encontrado. Tente o nome de urna ou o nome da cidade.</li>`;
   ul.hidden = false;
   return r;
@@ -194,18 +258,26 @@ async function iniciar() {
   $("#atualizacao").textContent = `Totais reunidos em ${new Date(T.gerado_em).toLocaleString("pt-BR")}. Última atualização de cada site — ${at.join(" · ")}.`;
 }
 
-$("#busca-q").addEventListener("input", () => { delete $("#busca-q").dataset.ir; buscar(); });
+$("#busca-q").addEventListener("input", buscar);
 $("#busca-q").addEventListener("focus", () => { carregarBusca(); if ($("#busca-q").value.trim().length >= 2) buscar(); });
-$("#busca").addEventListener("submit", async (e) => { e.preventDefault(); const ir = $("#busca-q").dataset.ir; if (ir) { location.href = ir; return; } const r = await buscar(); if (r.length) location.href = link(r[0]); });
+$("#busca").addEventListener("submit", async (e) => { e.preventDefault(); const ativo = document.querySelector("#busca-lista a.ativo");
+  if (ativo) { ativo.click(); return; }
+  const r = await buscar(); if (r.length) document.querySelector("#busca-lista a")?.click(); });
+document.addEventListener("click", (e) => {
+  const c = e.target.closest("[data-cnpj]"); if (!c) return;
+  e.preventDefault(); $("#busca-lista").hidden = true; abrirEmpresa(c.dataset.cnpj);
+});
+$("#empresa-fechar").onclick = () => $("#empresa").close();
+$("#empresa").addEventListener("click", (e) => { if (e.target.id === "empresa") $("#empresa").close(); });
 document.addEventListener("click", (e) => { if (!e.target.closest("#busca")) $("#busca-lista").hidden = true; });
 $("#busca-q").addEventListener("keydown", (e) => {
   const as = [...document.querySelectorAll("#busca-lista a")]; if (!as.length || !["ArrowDown", "ArrowUp"].includes(e.key)) return;
   e.preventDefault(); let i = as.findIndex((a) => a.classList.contains("ativo")); as[i]?.classList.remove("ativo");
   i = (i + (e.key === "ArrowDown" ? 1 : -1) + as.length) % as.length; as[i].classList.add("ativo"); as[i].scrollIntoView({ block: "nearest" });
-  $("#busca-q").dataset.ir = as[i].href;
 });
 $("#hamb").onclick = () => { const m = $("#menu"), a = m.classList.toggle("aberto"); $("#hamb").setAttribute("aria-expanded", String(a)); };
 $("#menu").onclick = (e) => { if (e.target.tagName === "A") { $("#menu").classList.remove("aberto"); $("#hamb").setAttribute("aria-expanded", "false"); } };
 iniciar();
 iniciarEstados();
+iniciarDestaques();
 })();

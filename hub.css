@@ -122,7 +122,34 @@ h2.sec { font: 700 22px var(--serif); color: var(--marinho); margin: 0 0 16px; }
 .uf-links a { background: var(--marinho); color: #fff; text-decoration: none; font-weight: 700; font-size: 13px; padding: 8px 12px; border-radius: 8px; }
 .uf-links a.sec2 { background: #fff; color: var(--marinho); border: 1px solid var(--linha); }
 
+/* destaques */
+.destaques { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+.top-notas { list-style: none; margin: 10px 0 0; padding: 0; counter-reset: n; }
+.top-notas > li { counter-increment: n; display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--linha); }
+.top-notas > li::before { content: counter(n) "º"; font: 700 13px var(--mono); color: var(--suave); }
+.top-notas > li.sub { display: block; border: 0; }
+.top-notas > li.sub::before { content: none; }
+.top-notas .o { font-size: 14px; overflow-wrap: anywhere; }
+.top-notas .o a { color: var(--tinta); text-decoration: none; }
+.top-notas .o a:hover { text-decoration: underline; }
+.top-notas .q { display: block; font-size: 11px; color: var(--suave); margin-top: 2px; }
+.top-notas .v { font: 700 14px var(--sans); white-space: nowrap; }
+.etq { display: inline-block; font: 700 10px var(--sans); color: #fff; border-radius: 4px; padding: 1px 5px; margin-right: 4px; background: var(--c); }
+button.link { background: none; border: 0; padding: 0; font: inherit; color: var(--tinta); text-align: left; cursor: pointer; }
+button.link:hover { text-decoration: underline; }
+
+/* ficha da empresa */
+dialog.empresa { border: 0; border-radius: 14px; padding: 22px; width: min(620px, calc(100% - 24px)); box-shadow: 0 20px 60px rgba(20,40,63,.3); }
+dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
+.empresa .fechar { position: absolute; top: 10px; right: 12px; border: 0; background: var(--cinza); width: 32px; height: 32px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+.empresa h3 { font: 700 22px var(--serif); margin: 0 30px 2px 0; color: var(--marinho); }
+.empresa table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+.empresa td { padding: 9px 0; border-bottom: 1px solid var(--linha); }
+.empresa td.v { text-align: right; font-weight: 700; white-space: nowrap; padding-left: 10px; }
+.empresa td a { font-size: 12px; margin-left: 6px; }
+
 @media (max-width: 980px) {
+  .destaques { grid-template-columns: 1fr; }
   .estados { grid-template-columns: 1fr; }
   .cartoes, .rodape-cartoes { grid-template-columns: 1fr; }
   .dava { grid-template-columns: 1fr; }
