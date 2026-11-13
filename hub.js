@@ -161,7 +161,10 @@ async function iniciarDestaques() {
   const ns = D.notas_semana || [];
   $("#top-notas").innerHTML = ns.length ? ns.map(([e, v, oque, quem, onde, data, url]) =>
     `<li><span class="o"><a href="${esc(url)}">${esc(oque)}</a><span class="q"><span class="etq" style="--c:${COR_ESF[e]}">${e}</span>${esc(quem)} · ${esc(onde)}${data ? " · " + dataCurta(data) : ""}</span></span><span class="v num">${brl(v, 2)}</span></li>`).join("")
-    : `<li class="sub">Nenhuma nota nova ainda. A contagem começou em ${new Date(D.gerado_em + "T12:00").toLocaleDateString("pt-BR")}: o robô compara, a cada dia, as notas publicadas com as que já tinha visto. As notas novas aparecem aqui a partir das próximas atualizações dos sites.</li>`;
+    : `<li class="sub">Sem notas publicadas nos últimos dias.</li>`;
+  const J = D.janelas || {}, rot = { deputados: "deputados", senadores: "senadores", municipios: "municípios" };
+  const jt = Object.entries(J).map(([k, [a, b]]) => `${rot[k]} de ${dataCurta(a)} a ${dataCurta(b)}`);
+  if (jt.length) $("#top-notas-sub").textContent = `as maiores notas emitidas na última semana com dados publicados · ${jt.join(" · ")}`;
   const ms = D.multi_esfera || [];
   $("#multi").innerHTML = ms.length ? ms.slice(0, 5).map(([raiz, nome, c14, tot, dep, sen, mun, filiais]) => {
     const q = [dep[0] ? `<span class="etq" style="--c:var(--dep)">DEP</span>${nf(dep[1])} deputado(s)` : "",

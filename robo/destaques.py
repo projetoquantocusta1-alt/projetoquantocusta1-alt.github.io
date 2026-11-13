@@ -2,17 +2,14 @@
 
 Roda uma vez por dia (parte "pesada" do Mensageiro: lê as notas e os fornecedores
 publicados pelos três sites). Saídas:
-    dados/destaques.json      -> 5 maiores notas novas da semana (todas as esferas) e
+    dados/destaques.json      -> 5 maiores notas da última semana com notas publicadas (todas as esferas) e
                                  fornecedores pagos em mais de uma esfera no ano
     dados/cnpj/XX.json        -> índice de CNPJ do ano (XX = 2 primeiros dígitos)
-    robo/estado/*.json        -> notas já vistas (senadores e municípios), para saber o que é novo
 
-Deputados: as notas novas vêm prontas do próprio site (docs/dados/novas). Senadores e
-municípios não publicam "notas novas": o Mensageiro guarda uma marca de cada nota que já
-viu e considera nova a que aparece pela primeira vez. Na primeira execução ele só guarda
-as marcas (a contagem começa no dia seguinte).
+"Notas da semana": em cada esfera, as notas emitidas nos 7 dias que terminam na nota mais
+recente já publicada (cada esfera publica com um atraso diferente). Folha de pessoal das
+prefeituras não entra (vem em lote, sem nome).
 """
-import hashlib
 import json
 from collections import defaultdict
 from datetime import date, timedelta
@@ -21,24 +18,11 @@ from pathlib import Path
 from privacidade import mascarar_cpf_no_texto as mascara
 
 RAIZ = Path(__file__).resolve().parents[1]
-ESTADO = RAIZ / "robo" / "estado"
 DIAS = 7
-MAX_NOVAS_GUARDADAS = 200
 
 
 def r2(x):
     return round(float(x or 0), 2)
-
-
-def _marca(*partes) -> str:
-    return hashlib.sha1("|".join(str(p) for p in partes).encode()).hexdigest()[:12]
-
-
-def _ler(p: Path, padrao):
-    try:
-        return json.loads(p.read_text("utf-8")) if p.exists() else padrao
-    except json.JSONDecodeError:
-        return padrao
 
 
 def _gravar(p: Path, obj):
@@ -50,78 +34,63 @@ def _raiz(c: str) -> str:
     return c[:8]
 
 
-# ------------------------------------------------------------------ notas novas
-def novas_deputados(fd, hoje: date, site: str) -> list[list]:
-    """[esfera, valor, o quê, quem, onde, data, link] das notas novas dos últimos 7 dias (do próprio site)."""
+# ------------------------------------------------------------------ últimas notas da semana
+def _janela(notas: list[list], hoje: date) -> tuple[list[list], list[str]]:
+    """Notas emitidas nos 7 dias que terminam na nota mais recente já publicada (até hoje).
+    Cada esfera publica com atraso diferente; assim a lista nunca fica vazia."""
+    datas = [n[5] for n in notas if n[5] and n[5] <= hoje.isoformat()]
+    if not datas:
+        return [], []
+    fim = max(datas)
+    ini = (date.fromisoformat(fim) - timedelta(days=DIAS - 1)).isoformat()
+    return [n for n in notas if n[5] and ini <= n[5] <= fim], [ini, fim]
+
+
+def ultimas_deputados(fd, ano: int, site: str) -> list[list]:
     out = []
-    idx = fd.get("novas/indice.json") or {}
-    for dia in idx.get("dias") or []:
-        d = dia.get("data") if isinstance(dia, dict) else dia
-        try:
-            if (hoje - date.fromisoformat(d)).days >= DIAS:
-                continue
-        except (TypeError, ValueError):
-            continue
-        x = fd.get(f"novas/{d}.json") or {}
-        cats, forn, deps = x.get("c") or [], x.get("f") or [], x.get("dep") or {}
+    for d in (fd.get(f"{ano}/resumo.json") or {}).get("deputados") or []:
+        x = fd.get(f"{ano}/notas/{d['id']}.json") or {}
+        forn, cats = x.get("f") or [], x.get("c") or []
         for n in x.get("n") or []:
-            dep = deps.get(str(n[0])) or ["", "", "", ""]
-            f = forn[n[1]] if n[1] < len(forn) else ["", "", ""]
-            out.append(["DEP", round(n[4] / 100, 2), f"{cats[n[2]] if n[2] < len(cats) else ''} — {f[1]}",
-                        f"{dep[0]}", f"Deputado(a) · {dep[2]}", n[3], f"{site}?pag=novas"])
+            mmdd = n[0]
+            if not mmdd % 100:
+                continue                     # nota sem dia de emissão
+            f = forn[n[2]] if n[2] < len(forn) else ["", ""]
+            out.append(["DEP", round(n[1] / 100, 2), f"{cats[n[3]] if n[3] < len(cats) else ''} — {f[1]}", d.get("nome", ""),
+                        f"Deputado(a) · {d.get('uf', '')}", f"{ano}-{mmdd // 100:02d}-{mmdd % 100:02d}", f"{site}?ano={ano}#dep-{d['id']}"])
     return out
 
 
-def _novas_por_marca(nome: str, notas: list[tuple[str, list]], hoje: date) -> list[list]:
-    """notas = [(marca, linha)]. Devolve as linhas vistas pela primeira vez nos últimos 7 dias."""
-    p = ESTADO / f"vistas_{nome}_{hoje.year}.json"
-    vistas = set(_ler(p, []))
-    recentes_p = ESTADO / f"novas_{nome}.json"
-    recentes = _ler(recentes_p, [])
-    primeira = not p.exists()
-    novas = [ln + [hoje.isoformat()] for m, ln in notas if m not in vistas]
-    if not primeira and len(novas) < 0.3 * max(1, len(notas)):      # se "tudo" virou novo, o site foi refeito: recomeça
-        recentes += sorted(novas, key=lambda x: -x[1])[:MAX_NOVAS_GUARDADAS]
-    limite = (hoje - timedelta(days=DIAS - 1)).isoformat()
-    recentes = [x for x in recentes if x[-1] >= limite]
-    _gravar(p, sorted(vistas | {m for m, _ in notas}))
-    _gravar(recentes_p, recentes)
-    return [x[:-1] for x in recentes]
-
-
-def novas_senadores(fs, ano: int, hoje: date, site: str) -> list[list]:
-    r = fs.get(f"{ano}/resumo.json") or {}
-    notas = []
-    for s in r.get("senadores") or []:
+def ultimas_senadores(fs, ano: int, site: str) -> list[list]:
+    out = []
+    for s in (fs.get(f"{ano}/resumo.json") or {}).get("senadores") or []:
         d = fs.get(f"{ano}/notas/{s['id']}.json") or {}
         fz = d.get("fornecedores") or {}
+        link = f"{site}?ano={ano}#sen-{s['id']}" if isinstance(s["id"], int) else site
         for n in d.get("notas") or []:
             f = fz.get(n[3]) or ["", ""]
-            link = f"{site}?ano={ano}#sen-{s['id']}" if isinstance(s["id"], int) else site
-            # a marca não usa a chave do fornecedor (ela pode mudar quando o site refaz o ano)
-            notas.append((_marca(s["id"], n[0], n[1], n[2], n[4], n[5]),
-                          ["SEN", r2(n[4]), f"{n[2]} — {f[1]}", s.get("nome", ""), f"Senador(a) · {s.get('uf', '')}", n[0], link]))
-    return _novas_por_marca("sen", notas, hoje)
+            out.append(["SEN", r2(n[4]), f"{n[2]} — {f[1]}", s.get("nome", ""), f"Senador(a) · {s.get('uf', '')}", n[0], link])
+    return out
 
 
-def novas_municipios(fm, ano: int, hoje: date, site: str) -> list[list]:
-    res = fm.get("resumo.json") or {}
-    notas = []
-    for m in res.get("municipios") or []:
+def ultimas_municipios(fm, ano: int, site: str) -> list[list]:
+    out = []
+    for m in (fm.get("resumo.json") or {}).get("municipios") or []:
         if str(ano) not in (m.get("anos") or {}):
             continue
         d = fm.get(f"n/{m['sim']}/{ano}.json") or {}
         fz, orgs = d.get("forn") or [], d.get("orgaos") or {}
         for e in d.get("emp") or []:
+            if (e[3] or "")[1:2] == "1":
+                continue                     # folha de pessoal (vem em lote, sem nome)
             papel = (orgs.get(e[0]) or ["", ""])[1]
             onde = {"camara": "Câmara", "prefeito": "Gabinete do prefeito", "vice": "Gabinete do vice"}.get(papel, "Órgão")
             f = fz[e[4]] if e[4] < len(fz) else [""]
-            v = r2((e[5] or 0) - (e[6] or 0))
             hist = (e[8] or "").strip()
             oque = f"{hist[:60]}{'…' if len(hist) > 60 else ''} — {f[0]}" if hist else f[0]
-            notas.append((_marca(m["sim"], e[0], e[1], e[2], e[5]),
-                          ["MUN", v, oque, m["nome"].title(), f"{onde} de {m['nome'].title()}", e[1], f"{site}#municipio/{m['sim']}"]))
-    return _novas_por_marca("mun", notas, hoje)
+            out.append(["MUN", r2((e[5] or 0) - (e[6] or 0)), oque, m["nome"].title(), f"{onde} de {m['nome'].title()}", e[1],
+                        f"{site}#municipio/{m['sim']}"])
+    return out
 
 
 # ------------------------------------------------------------------ fornecedores
@@ -210,14 +179,16 @@ def indice_cnpj(idx14: dict, nomes_mun: dict) -> dict[str, dict]:
 
 def gerar(fd, fs, fm, ano: int, hoje: date, sites: dict, saida: Path) -> dict:
     status = {}
-    notas = []
-    for nome, fn in (("deputados", lambda: novas_deputados(fd, hoje, sites["deputados"])),
-                     ("senadores", lambda: novas_senadores(fs, ano, hoje, sites["senadores"])),
-                     ("municipios", lambda: novas_municipios(fm, ano, hoje, sites["municipios"]))):
+    notas, janelas = [], {}
+    for nome, fn in (("deputados", lambda: ultimas_deputados(fd, ano, sites["deputados"])),
+                     ("senadores", lambda: ultimas_senadores(fs, ano, sites["senadores"])),
+                     ("municipios", lambda: ultimas_municipios(fm, ano, sites["municipios"]))):
         try:
-            v = fn()
+            v, jan = _janela(fn(), hoje)
             notas += v
-            status[f"notas_{nome}"] = f"ok ({len(v)} novas na semana)"
+            if jan:
+                janelas[nome] = jan
+            status[f"notas_{nome}"] = f"ok ({len(v)} notas de {jan[0]} a {jan[1]})" if jan else "sem notas"
         except Exception as e:  # noqa: BLE001
             status[f"notas_{nome}"] = f"erro ({e})"
     nomes_mun = {m["sim"]: m["nome"].title() for m in (fm.get("resumo.json") or {}).get("municipios") or []}
@@ -232,7 +203,7 @@ def gerar(fd, fs, fm, ano: int, hoje: date, sites: dict, saida: Path) -> dict:
             _gravar(saida / "cnpj" / f"{k}.json", v)
     notas = [[e, v, mascara(o), mascara(q), onde, d, u] for e, v, o, q, onde, d, u in notas]
     dest = {"ano": ano, "gerado_em": hoje.isoformat(), "notas_semana": sorted(notas, key=lambda x: -x[1])[:5],
-            "notas_semana_total": len(notas), "multi_esfera": multi, "cnpjs": len(idx14), "status": status,
+            "notas_semana_total": len(notas), "janelas": janelas, "multi_esfera": multi, "cnpjs": len(idx14), "status": status,
             # para a busca por nome de empresa: as maiores de cada esfera
             "empresas": sorted([[c, y["nome"], r2(y["dep"] + y["sen"] + y["mun"])] for c, y in idx14.items()],
                                key=lambda z: -z[2])[:600]}

@@ -35,8 +35,7 @@ jobs:
         run: |
           git config user.name  "robo-quanto-custa"
           git config user.email "actions@users.noreply.github.com"
-          mkdir -p robo/estado
-          git add dados robo/estado
+          git add dados
           if ! git diff --cached --quiet; then
             git commit -m "hub: totais de $(date -u +%Y-%m-%d)"
             git pull --rebase -X ours origin main || true
