@@ -91,6 +91,90 @@ function dava(T) {
   $("#dava-itens").innerHTML = cards.map(([v, r]) => `<div class="dava-item"><b class="num">${v}</b><span>${r}</span></div>`).join("");
 }
 
+// ---------------------------------------------------------------- mapa por estado
+const SITES = {
+  dep: "https://projetoquantocusta1-alt.github.io/quanto-custa-deputados/",
+  sen: "https://projetoquantocusta1-alt.github.io/quanto-custa-senadores/",
+  mun: "https://projetoquantocusta1-alt.github.io/quanto-custa-municipios/",
+};
+const UF_ROT = { AC: [58, 228], AL: [626, 240, 583, 233], AP: [336, 62], AM: [150, 150], BA: [500, 290], CE: [538, 160], DF: [446, 318, 409, 330],
+  ES: [556, 404, 520, 392], GO: [370, 352], MA: [446, 168], MT: [282, 282], MS: [302, 412], MG: [452, 374], PA: [330, 140], PB: [626, 192, 590, 193],
+  PR: [352, 478], PE: [626, 216, 572, 213], PI: [482, 196], RJ: [520, 452, 492, 433], RN: [626, 168, 585, 174], RS: [314, 584], RO: [168, 254],
+  RR: [188, 56], SC: [364, 530], SP: [400, 446], SE: [626, 264, 573, 247], TO: [402, 228] };
+const ESTADO = { sel: "CE", dados: null };
+
+function desenharMapa() {
+  const M = window.MAPA_BR, D = ESTADO.dados; if (!M || !D) return;
+  const ufs = Object.keys(M.ufs), val = Object.fromEntries(ufs.map((u) => [u, D.ufs[u]?.por_mes || 0]));
+  const vs = Object.values(val).filter((v) => v > 0), mn = Math.min(...vs), mx = Math.max(...vs);
+  $("#mapa").innerHTML = `<svg viewBox="${M.viewBox}" role="img" aria-label="Mapa do Brasil por estado">${ufs.map((u) => {
+      const t = val[u] && mx > mn ? (val[u] - mn) / (mx - mn) : 0.3, c = [222 - 150 * t, 235 - 110 * t, 247 - 60 * t].map(Math.round);
+      return `<path d="${M.ufs[u][1]}" data-uf="${u}" tabindex="0" class="${u === ESTADO.sel ? "sel" : ""}" style="fill:rgb(${c})"><title>${M.ufs[u][0]}${val[u] ? " · " + brl(val[u]) + " por político, por mês" : ""}</title></path>`; }).join("")}
+    ${ufs.map((u) => { const p = UF_ROT[u]; return p.length > 2 ? `<line x1="${p[0] - 6}" y1="${p[1] - 4}" x2="${p[2]}" y2="${p[3]}" class="uf-linha"/>` : ""; }).join("")}
+    ${ufs.map((u) => { const p = UF_ROT[u], t = val[u] && mx > mn ? (val[u] - mn) / (mx - mn) : 0.3;
+      return `<text x="${p[0]}" y="${p[1]}" data-uf="${u}" class="uf-rot${p.length > 2 ? " fora" : (u === ESTADO.sel || t > 0.62 ? " claro" : "")}${u === ESTADO.sel ? " sel" : ""}">${u}</text>`; }).join("")}</svg>`;
+}
+
+function painelUF() {
+  const u = ESTADO.sel, x = ESTADO.dados?.ufs[u], M = window.MAPA_BR; if (!x || !M) return;
+  const ano = ESTADO.dados.ano;
+  const linha = (tag, cor, txt, v, cls = "") => `<tr><td>${tag ? `<span class="t" style="--c:${cor}">${tag}</span>` : ""}${txt}</td><td class="v ${cls}">${v}</td></tr>`;
+  let rows = linha("DEP", "var(--dep)", `${nf(x.dep.n)} deputados federais`, curto(x.dep.custo)) +
+             linha("SEN", "var(--sen)", `${nf(x.sen.n)} senadores`, curto(x.sen.custo));
+  if (x.mun) {
+    const m = x.mun, completo = m.com_dados >= m.total;
+    rows += linha("MUN", "var(--mun)", `${nf(m.total)} câmaras e gabinetes${completo ? "" : ` <small class="sub">(em coleta: ${nf(m.com_dados)} de ${nf(m.total)})</small>`}`, m.com_dados ? curto(m.custo) : "—");
+    rows += linha("", "", "Emendas recebidas pelos municípios", m.com_dados ? curto(m.emendas) : "—");
+    rows += linha("", "", "Por habitante, no ano", x.por_habitante ? brl(x.por_habitante, 2) : "—", "vermelho");
+  } else {
+    rows += linha("", "", `<span class="sub">Prefeitos e vereadores deste estado ainda não estão no projeto (por enquanto, só o Ceará).</span>`, "");
+  }
+  rows += linha("", "", "Custo médio por político federal, por mês", x.por_mes ? brl(x.por_mes) : "—");
+  $("#uf-painel").innerHTML = `<div class="uf-cab"><small>Estado selecionado · ${ano} até agora</small><h3>${esc(M.ufs[u][0])}</h3></div>
+    <table class="uf-linhas"><tbody>${rows}</tbody></table>
+    <div class="uf-links"><a href="${SITES.dep}?uf=${u}&pag=deputados">Deputados de ${u} →</a><a class="sec2" href="${SITES.sen}?uf=${u}#senadores">Senadores de ${u} →</a>${x.mun ? `<a class="sec2" href="${SITES.mun}">Cidades do Ceará →</a>` : ""}</div>`;
+}
+
+async function iniciarEstados() {
+  try { const r = await fetch("dados/estados.json", { cache: "no-cache" }); if (!r.ok) throw 0; ESTADO.dados = await r.json(); }
+  catch { $("#estados").hidden = true; return; }
+  document.querySelectorAll(".ano-mapa").forEach((e) => (e.textContent = ESTADO.dados.ano));
+  desenharMapa(); painelUF();
+  const escolher = (u) => { if (!u || !ESTADO.dados.ufs[u]) return; ESTADO.sel = u; desenharMapa(); painelUF(); };
+  $("#mapa").addEventListener("click", (e) => escolher(e.target.closest("[data-uf]")?.dataset.uf));
+  $("#mapa").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); escolher(e.target.dataset?.uf); } });
+}
+
+// ---------------------------------------------------------------- busca
+const TIPOS = { D: ["DEP", "var(--dep)"], S: ["SEN", "var(--sen)"], P: ["PREF", "var(--mun)"], V: ["VER", "var(--mun)"], C: ["CIDADE", "#5B6B7E"] };
+const ORDEM = { D: 0, S: 1, C: 2, P: 3, V: 4 };
+const norm = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+let BUSCA = null;
+async function carregarBusca() {
+  if (BUSCA) return BUSCA;
+  try { const r = await fetch("dados/busca.json", { cache: "no-cache" }); BUSCA = (await r.json()).map((x) => [...x, norm(x[1] + " " + x[2])]); }
+  catch { BUSCA = []; }
+  return BUSCA;
+}
+function link(x) {
+  if (x[0] === "D") return `${SITES.dep}?ano=total#dep-${x[3]}`;
+  if (x[0] === "S") return `${SITES.sen}?ano=${x[4]}#sen-${x[3]}`;
+  return `${SITES.mun}#municipio/${x[3]}`;
+}
+async function buscar() {
+  const q = norm($("#busca-q").value.trim()), ul = $("#busca-lista");
+  if (q.length < 2) { ul.hidden = true; return []; }
+  const L = await carregarBusca(), ps = q.split(/\s+/);
+  const nomeN = (x) => x[x.length - 1];
+  const r = L.filter((x) => ps.every((p) => nomeN(x).includes(p)))
+    .sort((a, b) => (norm(b[1]).startsWith(q) - norm(a[1]).startsWith(q)) || ORDEM[a[0]] - ORDEM[b[0]] || (a[2].startsWith("vice") - b[2].startsWith("vice")) || a[1].localeCompare(b[1])).slice(0, 12);
+  ul.innerHTML = r.length ? r.map((x, i) => { const [t, c] = TIPOS[x[0]];
+      return `<li><a href="${link(x)}" class="${i ? "" : "ativo"}"><span class="t" style="--c:${c}">${t}</span><span>${esc(x[1])}<small>${esc(x[2])}</small></span></a></li>`; }).join("")
+    : `<li class="vazio">Nada encontrado. Tente o nome de urna ou o nome da cidade.</li>`;
+  ul.hidden = false;
+  return r;
+}
+
 async function iniciar() {
   let T;
   try {
@@ -110,7 +194,18 @@ async function iniciar() {
   $("#atualizacao").textContent = `Totais reunidos em ${new Date(T.gerado_em).toLocaleString("pt-BR")}. Última atualização de cada site — ${at.join(" · ")}.`;
 }
 
+$("#busca-q").addEventListener("input", () => { delete $("#busca-q").dataset.ir; buscar(); });
+$("#busca-q").addEventListener("focus", () => { carregarBusca(); if ($("#busca-q").value.trim().length >= 2) buscar(); });
+$("#busca").addEventListener("submit", async (e) => { e.preventDefault(); const ir = $("#busca-q").dataset.ir; if (ir) { location.href = ir; return; } const r = await buscar(); if (r.length) location.href = link(r[0]); });
+document.addEventListener("click", (e) => { if (!e.target.closest("#busca")) $("#busca-lista").hidden = true; });
+$("#busca-q").addEventListener("keydown", (e) => {
+  const as = [...document.querySelectorAll("#busca-lista a")]; if (!as.length || !["ArrowDown", "ArrowUp"].includes(e.key)) return;
+  e.preventDefault(); let i = as.findIndex((a) => a.classList.contains("ativo")); as[i]?.classList.remove("ativo");
+  i = (i + (e.key === "ArrowDown" ? 1 : -1) + as.length) % as.length; as[i].classList.add("ativo"); as[i].scrollIntoView({ block: "nearest" });
+  $("#busca-q").dataset.ir = as[i].href;
+});
 $("#hamb").onclick = () => { const m = $("#menu"), a = m.classList.toggle("aberto"); $("#hamb").setAttribute("aria-expanded", String(a)); };
 $("#menu").onclick = (e) => { if (e.target.tagName === "A") { $("#menu").classList.remove("aberto"); $("#hamb").setAttribute("aria-expanded", "false"); } };
 iniciar();
+iniciarEstados();
 })();

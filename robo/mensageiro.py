@@ -19,6 +19,8 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[1]
 SAIDA = RAIZ / "dados" / "totais_hub.json"
+SAIDA_ESTADOS = RAIZ / "dados" / "estados.json"
+SAIDA_BUSCA = RAIZ / "dados" / "busca.json"
 CONTA = "projetoquantocusta1-alt"
 REPOS = {"deputados": "quanto-custa-deputados", "senadores": "quanto-custa-senadores", "municipios": "quanto-custa-municipios"}
 SITE = "https://projetoquantocusta1-alt.github.io/{repo}/"
@@ -190,6 +192,88 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
     }
 
 
+# ------------------------------------------------------------------ fase 2: estados e busca
+def estados(fd: Fonte, fs: Fonte, fm: Fonte, ano: int) -> dict:
+    """Por UF, no ano atual: deputados, senadores e (só no CE) câmaras e gabinetes municipais, emendas e população."""
+    uf: dict[str, dict] = {}
+
+    def e(u):
+        return uf.setdefault(u, {"dep": [0, 0.0, 0], "sen": [0, 0.0, 0]})   # [pessoas, custo, meses]
+    for d in (fd.get(f"{ano}/resumo.json") or {}).get("deputados") or []:
+        if d.get("uf"):
+            x = e(d["uf"])["dep"]
+            x[0] += 1 if d.get("em_exercicio") else 0
+            x[1] += d.get("custo_mandato") or 0
+            x[2] += d.get("meses") or 0
+    for d in (fs.get(f"{ano}/resumo.json") or {}).get("senadores") or []:
+        if d.get("uf") and isinstance(d.get("id"), int):
+            x = e(d["uf"])["sen"]
+            x[0] += 1
+            x[1] += d.get("custo") or 0
+            x[2] += d.get("meses") or 0
+    # municípios (por enquanto só o Ceará)
+    res = fm.get("resumo.json") or {}
+    ix = {c: i for i, c in enumerate(res.get("campos") or [])}
+    meta = fm.get("meta.json") or {}
+    if ix:
+        n = cust = em = pop = 0
+        for m in res.get("municipios") or []:
+            ln = (m.get("anos") or {}).get(str(ano))
+            if not ln:
+                continue
+            n += 1
+            cust += sum(ln[ix[c]] or 0 for c in ("camara", "gab_prefeito", "gab_vice"))
+            em += ln[ix["emendas"]] or 0 if "emendas" in ix else 0
+            pop += ln[ix["populacao"]] or 0 if "populacao" in ix else 0
+        x = e("CE")
+        x["mun"] = {"com_dados": n, "total": meta.get("total_municipios") or 184, "custo": r2(cust), "emendas": r2(em),
+                    "populacao": int(pop) or None}
+    out = {}
+    for u, x in uf.items():
+        d, s_ = x["dep"], x["sen"]
+        pessoas_meses = d[2] + s_[2]
+        o = {"dep": {"n": d[0], "custo": r2(d[1])}, "sen": {"n": s_[0], "custo": r2(s_[1])},
+             # cor do mapa: custo médio de um político federal do estado por mês
+             "por_mes": r2((d[1] + s_[1]) / pessoas_meses) if pessoas_meses else None}
+        if "mun" in x:
+            o["mun"] = x["mun"]
+            tot = d[1] + s_[1] + x["mun"]["custo"]
+            if x["mun"]["populacao"] and x["mun"]["com_dados"] >= x["mun"]["total"]:
+                o["por_habitante"] = r2(tot / x["mun"]["populacao"])
+        out[u] = o
+    return {"ano": ano, "ufs": out}
+
+
+def busca(fd: Fonte, fs: Fonte, fm: Fonte) -> list[list]:
+    """Índice enxuto de nomes: [tipo, nome, detalhe, chave]. Tipos: D deputado, S senador, C cidade, P prefeito(a), V vereador(a)."""
+    out, vistos = [], set()
+    for d in (fd.get("total/resumo.json") or {}).get("deputados") or []:
+        out.append(["D", d.get("nome", ""), f"{d.get('partido', '')}-{d.get('uf', '')}", d["id"]])
+    for a in sorted((fs.get("meta.json") or {}).get("anos") or [], reverse=True):
+        for s_ in (fs.get(f"{a}/resumo.json") or {}).get("senadores") or []:
+            if isinstance(s_.get("id"), int) and s_["id"] not in vistos:
+                vistos.add(s_["id"])
+                out.append(["S", s_.get("nome", ""), f"{s_.get('partido', '')}-{s_.get('uf', '')}".strip("-"), s_["id"], a])
+    for m in (fm.get("resumo.json") or {}).get("municipios") or []:
+        sim = m["sim"]
+        out.append(["C", m["nome"].title(), "Ceará", sim])
+        det = fm.get(f"m/{sim}.json") or {}
+        mand = det.get("mandatos") or {}
+        if not mand:
+            continue
+        ult = mand[max(mand, key=int)]
+        cidade = m["nome"].title()
+        for papel, tipo in (("prefeito", "P"), ("vice", "P")):
+            p = ult.get(papel)
+            if p:
+                rot = "prefeito(a)" if papel == "prefeito" else "vice-prefeito(a)"
+                out.append([tipo, (p.get("urna") or p.get("nome") or "").title(), f"{rot} de {cidade} · {p.get('partido', '')}", sim])
+        for v in ult.get("vereadores") or []:
+            if v:
+                out.append(["V", (v.get("urna") or v.get("nome") or "").title(), f"vereador(a) de {cidade} · {v.get('partido', '')}", sim])
+    return out
+
+
 # ------------------------------------------------------------------ principal
 def montar(local: Path | None = None, hoje: date | None = None, anterior: dict | None = None) -> dict:
     hoje = hoje or date.today()
@@ -231,6 +315,17 @@ def main(argv=None):
         except json.JSONDecodeError:
             pass
     out = montar(args.local, anterior=anterior)
+    ano = date.today().year
+    fontes = [Fonte(REPOS[k], args.local) for k in ("deputados", "senadores", "municipios")]
+    for nome, fn, caminho in (("estados", lambda: estados(*fontes, ano), SAIDA_ESTADOS), ("busca", lambda: busca(*fontes), SAIDA_BUSCA)):
+        try:
+            v = fn()
+            if v and (nome != "estados" or v["ufs"]):
+                caminho.parent.mkdir(parents=True, exist_ok=True)
+                caminho.write_text(json.dumps(v, ensure_ascii=False, separators=(",", ":")), "utf-8")
+                print(f"{caminho.name}: ok")
+        except Exception as e:  # noqa: BLE001 — mantém o arquivo anterior
+            print(f"{nome}: falhou ({e}); arquivo anterior mantido")
     if not out["esferas"]:
         print("Nenhuma esfera respondeu; arquivo anterior mantido.", out["status"])
         return 1
