@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://projetoquantocusta1-alt.github.io/sitemap.xml
