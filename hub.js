@@ -89,7 +89,7 @@ function cartao(id, x, T) {
     const comp = x.anos_completos || [];
     quem = `${nf(x.total_municipios)} municípios${x.vereadores ? ` · ${nf(x.vereadores)} vereadores` : ""}${x.desde ? ` · desde ${x.desde}` : ""}`;
     valorRot = `câmaras municipais, registrado em ${x.ano}`;
-    inds = [[`por vereador, por ano (${x.por_vereador?.ano ?? "—"}) · câmara inteira ÷ vereadores`, x.por_vereador ? curto(x.por_vereador.valor) : "—"],
+    inds = [[`por vereador, por ano (${x.por_vereador?.ano ?? "—"}, em valores de hoje) · câmara inteira ÷ vereadores`, x.por_vereador ? curto(x.por_vereador.valor) : "—"],
             [`gabinetes do prefeito e do vice em ${x.ano} (órgão inteiro, fora do total)`, curto(x.gabinetes_registrado_ano || 0)]];
     if (x.em_coleta) aviso = `<p class="aviso">Em coleta: ${x.cobertura < x.total_municipios ? `${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades têm dados de ${x.ano}. ` : ""}${comp.length ? `Série completa: ${comp[0]}–${comp[comp.length - 1]}; ` : ""}os anos desde 2017 chegam nos próximos dias.</p>`;
   }
