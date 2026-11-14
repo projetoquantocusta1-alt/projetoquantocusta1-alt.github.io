@@ -179,10 +179,20 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
             if ln[ix["populacao"]]:
                 q["pop"] += ln[ix["populacao"]]
                 q["pop_n"] += 1
-            if int(a) == ano and "situacao_camara" in ix:
-                sit = ln[ix["situacao_camara"]]
+            if int(a) == ano:
+                if "situacao_camara" in ix:
+                    sit, dif = ln[ix["situacao_camara"]], ln[ix["diferenca_camara"]] if "diferenca_camara" in ix else None
+                elif "conferido" in ix and ln[ix["conferido"]] == 0:
+                    # resumo ainda sem a situação: olha o arquivo do município (só os que não conferem)
+                    det = ((f.get(f"m/{m.get('sim')}.json") or {}).get("anos") or {}).get(a) or {}
+                    c = (det.get("conferencia") or {}).get("camara") or {}
+                    fonte = ((det.get("orgaos") or {}).get("camara") or {}).get("fonte_gasto") or "balancete"
+                    sit = "sem_balancete" if fonte != "balancete" else ("diferenca" if c and not c.get("ok") else None)
+                    dif = c.get("diferenca")
+                else:
+                    sit = dif = None
                 if sit in ("sem_balancete", "diferenca"):
-                    diverg.setdefault(sit, []).append([m.get("nome"), ln[ix["diferenca_camara"]] if "diferenca_camara" in ix else None])
+                    diverg.setdefault(sit, []).append([m.get("nome"), dif])
             if int(a) == ano:
                 meses = (ln[ix["mes_ref"]] or 0) % 100
                 if meses:
