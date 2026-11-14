@@ -208,3 +208,5 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
   #menu .sub-lista a::before { content: "Deputados "; }
   #menu .sub-lista a:hover { background: rgba(255,255,255,.08); color: #fff; }
 }
+.aviso.diverg { background: #FDF0EF; border-color: #E3A6A0; color: #4a1f1b; }
+.aviso.diverg a { color: #8a2a22; }

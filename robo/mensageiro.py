@@ -166,6 +166,7 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
     fatores = {str(k): v for k, v in ((meta.get("ipca") or {}).get("fatores") or {}).items()}
     total_mun = meta.get("total_municipios") or len(res.get("municipios") or []) or 184
     por_ano: dict[str, dict] = {}
+    diverg: dict[str, list] = {}   # câmaras que não enviaram o balancete ou cujas notas não batem (ano atual)
     ritmo_mensal = ja = 0.0
     for m in res.get("municipios") or []:
         for a, ln in (m.get("anos") or {}).items():
@@ -178,6 +179,10 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
             if ln[ix["populacao"]]:
                 q["pop"] += ln[ix["populacao"]]
                 q["pop_n"] += 1
+            if int(a) == ano and "situacao_camara" in ix:
+                sit = ln[ix["situacao_camara"]]
+                if sit in ("sem_balancete", "diferenca"):
+                    diverg.setdefault(sit, []).append([m.get("nome"), ln[ix["diferenca_camara"]] if "diferenca_camara" in ix else None])
             if int(a) == ano:
                 meses = (ln[ix["mes_ref"]] or 0) % 100
                 if meses:
@@ -203,6 +208,7 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
         "cobertura": atual["n"], "total_municipios": total_mun, "anos_completos": completos,
         "total_ano": r2(ja_est), "registrado_ano": r2(ja), "previsto_ano": cont["teto"], "contador": cont,
         "gabinetes_registrado_ano": r2(atual["gabinetes"]),
+        "divergencias": {k: sorted(v) for k, v in diverg.items()},
         "historico": hist, "desde": desde,
         "vereadores": int(q_ref["vereadores"]) if q_ref else None, "vereadores_ano": ref,
         # custo da câmara inteira (vereadores, servidores e despesas) dividido pelo número de vereadores

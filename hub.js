@@ -76,7 +76,7 @@ function barras(hist) {
 function cartao(id, x, T) {
   const e = ESF[id];
   if (!x) return `<article class="cartao" style="--c:${e.cor}"><div class="k">${e.k}</div><h3>${e.nome}</h3><p class="sub">Dados indisponíveis no momento.</p></article>`;
-  let quem, inds, aviso = "", valorRot = `em ${x.ano}`;
+  let quem, inds, aviso = "", avisoDiv = "", valorRot = `em ${x.ano}`;
   if (id === "deputados") {
     quem = `${nf(x.cadeiras)} deputados · desde ${x.desde}`;
     inds = [[`por deputado, por ano (${x.por_cadeira?.ano ?? "—"})`, x.por_cadeira ? curto(x.por_cadeira.valor) : "—"],
@@ -91,6 +91,9 @@ function cartao(id, x, T) {
     valorRot = `câmaras municipais, registrado em ${x.ano}`;
     inds = [[`por vereador, por ano (${x.por_vereador?.ano ?? "—"}, em valores de hoje) · câmara inteira ÷ vereadores`, x.por_vereador ? curto(x.por_vereador.valor) : "—"],
             [`gabinetes do prefeito e do vice em ${x.ano} (órgão inteiro, fora do total)`, curto(x.gabinetes_registrado_ano || 0)]];
+    const dv = x.divergencias || {}, tit = (n) => String(n || "").toLowerCase().replace(/(^|\s)(\p{L})/gu, (m) => m.toUpperCase());
+    const sb = (dv.sem_balancete || []).map(([n]) => tit(n)), df = (dv.diferenca || []).map(([n]) => tit(n));
+    if (sb.length || df.length) avisoDiv = `<p class="aviso diverg">${sb.length ? `<b>Sem balancete enviado ao TCE-CE em ${x.ano}:</b> câmara${sb.length > 1 ? "s" : ""} de ${esc(sb.join(", "))} (valor pela soma das notas de empenho). ` : ""}${df.length ? `<b>Notas e balancete não batem:</b> ${esc(df.join(", "))}. ` : ""}<a href="${x.url}#camaras">ver detalhes</a></p>`;
     if (x.em_coleta) aviso = `<p class="aviso">Em coleta: ${x.cobertura < x.total_municipios ? `${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades têm dados de ${x.ano}. ` : ""}${comp.length ? `Série completa: ${comp[0]}–${comp[comp.length - 1]}; ` : ""}os anos desde 2017 chegam nos próximos dias.</p>`;
   }
   // municípios: o valor JÁ REGISTRADO (o mesmo do mapa); o estimado fica só no contador
@@ -100,7 +103,7 @@ function cartao(id, x, T) {
     <h3>${e.nome}</h3><p class="quem">${quem}</p>
     <div class="valor"><b class="num">${valor}</b><span>${valorRot}${x.meses && x.meses < 12 ? " (até agora)" : ""}</span></div>
     ${barras(x.historico)}
-    ${aviso}
+    ${aviso}${avisoDiv}
     <div class="inds">${inds.map(([r, v]) => `<div class="ind"><small>${r}</small><b class="num">${v}</b></div>`).join("")}</div>
     <a class="ir" href="${esc(x.url)}"><span>${e.ir}</span><span aria-hidden="true">→</span></a>
   </article>`;
