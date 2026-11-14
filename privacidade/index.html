@@ -44,14 +44,23 @@
 <footer class="rodape">Projeto Quanto Custa · projeto independente, sem vínculo com nenhum órgão público · <a href="https://quantocustaum.com/sobre/">Sobre</a> · <a href="https://quantocustaum.com/privacidade/">Privacidade</a> · <a href="https://github.com/projetoquantocusta1-alt/projetoquantocusta1-alt.github.io/issues">Pedir correção</a> · <a href="https://github.com/projetoquantocusta1-alt">Código aberto</a></footer>
 <!-- contador de visitas sem cookies e sem dados pessoais (GoatCounter) -->
 <script data-goatcounter="https://quantocustaum.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
-<script>/* número de visitas no rodapé (some sozinho se o GoatCounter não responder) */
+<script>/* número de visitas: selo no topo (ou no rodapé, se a página não tiver selo); some se o GoatCounter não responder */
 (function () {
   fetch("https://quantocustaum.goatcounter.com/counter/TOTAL.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-    var n = d && parseInt(String(d.count || "").replace(/\D/g, ""), 10), rod = document.querySelector(".rodape");
-    if (!n || !rod) return;
-    var s = document.createElement("span"); s.id = "qc-visitas";
-    s.textContent = " · " + n.toLocaleString("pt-BR") + (n === 1 ? " visita" : " visitas");
-    rod.appendChild(s);
+    var n = d && parseInt(String(d.count || "").replace(/\D/g, ""), 10);
+    if (!n) return;
+    var fmt = function (x) { return x.toLocaleString("pt-BR"); };
+    var alvo = document.querySelector("[data-visitas]");
+    if (alvo) {
+      var b = alvo.querySelector("b"); alvo.hidden = false;
+      alvo.querySelector(".visitas").lastChild.textContent = n === 1 ? " visita ao Projeto Quanto Custa" : " visitas ao Projeto Quanto Custa";
+      if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { b.textContent = fmt(n); return; }
+      var t0 = null, dur = 1200;
+      (function passo(t) { if (!t0) t0 = t; var k = Math.min(1, (t - t0) / dur); b.textContent = fmt(Math.round(n * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(passo); })(performance.now());
+      return;
+    }
+    var rod = document.querySelector(".rodape"); if (!rod) return;
+    var s = document.createElement("span"); s.id = "qc-visitas"; s.textContent = " · " + fmt(n) + (n === 1 ? " visita" : " visitas"); rod.appendChild(s);
   }).catch(function () {});
 })();
 </script>
