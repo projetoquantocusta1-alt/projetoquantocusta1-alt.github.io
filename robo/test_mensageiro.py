@@ -36,10 +36,19 @@ def test_montar(tmp_path):
     mun = es["municipios"]
     assert mun["em_coleta"] and mun["cobertura"] == 1 and mun["total_ano"] == 100 and mun["previsto_ano"] == 120
     assert out["dava"]["base"] == 90 and out["dava"]["excesso"] == 72
-    assert out["total_ano"] == 90 + 20 + 100
+    assert out["total_ano"] == 90 + 20 and out["total_ano_municipios"] == 100   # Congresso à parte do Ceará
 
 
 def test_mantem_ultimo_bom(tmp_path):
     anterior = {"esferas": {"senadores": {"ano": 2026, "total_ano": 5, "contador": {"ja": 5, "inicio": "2026-11-01", "por_seg": 0, "teto": 5}}}}
     out = M.montar(tmp_path, hoje=date(2026, 11, 13), anterior=anterior)
     assert out["esferas"]["senadores"]["total_ano"] == 5 and out["status"]["senadores"].startswith("mantido")
+
+
+def test_validacoes():
+    ok = {"historico": [[2024, 100.0, True], [2025, 155.0, True], [2026, 10.0, False]]}
+    assert M.validar("deputados", ok, 2026) == []
+    ruim = {"historico": [[2024, 100.0, True], [2025, 30.0, True]]}
+    assert M.validar("senadores", ruim, 2026)
+    mun = {"historico": [], "vereadores": 316, "_conferir": {"vereadores_fonte": 2190}, "cobertura": 184, "total_municipios": 184, "em_coleta": False}
+    assert any("vereadores" in e for e in M.validar("municipios", mun, 2026))

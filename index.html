@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hub.css?v=4">
+<link rel="stylesheet" href="hub.css?v=5">
 </head>
 <body>
 <header class="topo">
@@ -33,20 +33,27 @@
     <h1>Quanto custam os políticos do Brasil?</h1>
     <p class="sub-hero">Deputados, senadores, prefeitos e vereadores em um só lugar: salário, cota, gabinete e cada nota fiscal — com valores corrigidos pela inflação.</p>
     <form class="busca" id="busca" role="search" autocomplete="off">
-      <input id="busca-q" type="search" placeholder="Busque um deputado, senador, prefeito, vereador, cidade ou empresa (CNPJ)" aria-label="Buscar político, cidade ou empresa" aria-controls="busca-lista">
+      <input id="busca-q" type="search" placeholder="Busque político, cidade ou CNPJ" aria-label="Buscar político, cidade ou empresa" aria-controls="busca-lista">
       <button type="submit">Buscar</button>
       <ul class="busca-lista" id="busca-lista" role="listbox" hidden></ul>
     </form>
-    <p class="cont-rot" id="cont-rot">Já gasto em <span class="ano">—</span> com deputados, senadores e câmaras e gabinetes do Ceará</p>
+    <p class="cont-rot" id="cont-rot">Já gasto em <span class="ano">—</span> com o <b>Congresso Nacional</b> (513 deputados federais e 81 senadores)</p>
     <div class="contador num" id="contador" aria-live="off">—</div>
     <p class="extenso" id="contador-ext"></p>
     <p class="cont-ritmo" id="cont-ritmo"></p>
     <p class="cont-nota" id="cont-nota"></p>
+    <div class="cont-mun" id="cont-mun" hidden>
+      <p class="cont-rot">E com as <b>câmaras municipais do Ceará</b> (184 cidades) em <span class="ano">—</span></p>
+      <div class="contador2 num" id="contador-mun">—</div>
+      <p class="extenso" id="contador-mun-ext"></p>
+      <p class="cont-nota" id="cont-mun-nota"></p>
+    </div>
   </section>
 
   <section class="faixa" id="esferas">
     <div class="largura">
       <h2 class="sec">Escolha a esfera</h2>
+      <p class="comparar" id="comparar"></p>
       <div class="cartoes" id="cartoes">
         <p class="sub">Carregando…</p>
       </div>
@@ -67,13 +74,13 @@
 
   <section class="largura destaques" id="destaques">
     <article class="painel">
-      <h3>As 5 maiores notas da semana</h3>
+      <h3>As 5 maiores notas recentes</h3>
       <p class="sub" id="top-notas-sub">as maiores notas emitidas na última semana com dados publicados · todas as esferas</p>
       <ol class="top-notas" id="top-notas"><li class="sub">Carregando…</li></ol>
     </article>
     <article class="painel">
       <h3>Fornecedores que aparecem em mais de uma esfera</h3>
-      <p class="sub">mesma empresa (raiz do CNPJ) paga por deputados, senadores ou prefeituras em <span class="ano-mapa">—</span></p>
+      <p class="sub">mesma empresa (raiz do CNPJ) paga pela cota de deputados e senadores e por câmaras e gabinetes municipais em <span class="ano-mapa">—</span> · sem contas de luz e água, bancos, Correios, companhias aéreas e hospitais</p>
       <ol class="top-notas" id="multi"><li class="sub">Carregando…</li></ol>
     </article>
   </section>
@@ -84,18 +91,20 @@
         <p class="dava-selo">O que dava pra fazer?</p>
         <div class="dava-valor num" id="dava-valor">—</div>
         <p class="dava-txt" id="dava-txt"></p>
+        <label class="dava-ctl">Quanto disso você considera evitável? <b id="dava-pct-rot">80%</b>
+          <input type="range" id="dava-pct" min="10" max="100" step="5" value="80" aria-label="Porcentagem considerada evitável"></label>
       </div>
       <div class="dava-itens" id="dava-itens"></div>
     </div>
-    <p class="dava-nota">Comparação ilustrativa com a regra provisória do projeto: 80% do que a cota de deputados e senadores gastou com transporte, alimentação, hospedagem e divulgação do mandato. Não é um cálculo oficial de desperdício. Os custos de referência e as fontes estão nas páginas “O que dava pra fazer?” de
+    <p class="dava-nota">Comparação ilustrativa. Partimos de 80% (regra provisória do projeto) do que a cota gastou com transporte, alimentação, hospedagem e divulgação do mandato — despesas legais, mas em que há margem para economia; mova o controle para usar a porcentagem que você acha justa. Não é um cálculo oficial de desperdício. O custo anual de funcionamento da UBS é uma estimativa ainda sem fonte oficial. Os custos de referência e as fontes estão nas páginas “O que dava pra fazer?” de
       <a href="https://projetoquantocusta1-alt.github.io/quanto-custa-deputados/?pag=dava">deputados</a> e
       <a href="https://projetoquantocusta1-alt.github.io/quanto-custa-senadores/#dava">senadores</a>.</p>
   </section>
 
   <section class="largura rodape-cartoes">
-    <a class="mini" href="#esferas"><b>Comparar esferas</b><span>Quanto custa um deputado, um senador e uma câmara municipal, lado a lado.</span></a>
+    <a class="mini" href="#esferas"><b>Comparar esferas</b><span>Quanto custa, por ano, um deputado federal, um senador e uma câmara municipal do Ceará.</span></a>
     <a class="mini" href="https://projetoquantocusta1-alt.github.io/quanto-custa-deputados/?pag=novas"><b>Novas notas</b><span>O que entrou nos últimos dias na cota dos deputados, com alertas de fornecedor recém-aberto ou acima do limite do MEI.</span></a>
-    <a class="mini" href="#metodo"><b>Como calculamos</b><span>Fontes oficiais (Câmara, Senado, TCE-CE, TSE, IBGE, CGU, Receita), conferência nota × balancete e correção pelo IPCA.</span></a>
+    <a class="mini" href="sobre/"><b>Sobre o projeto</b><span>Quem somos (sem nomes, por segurança), como pedir uma correção e como tratamos dados pessoais.</span></a>
   </section>
 
   <section class="largura metodo" id="metodo">
@@ -103,8 +112,10 @@
     <ul>
       <li><b>Deputados federais</b>: salário, ajudas de custo, auxílio-moradia, cota parlamentar (CEAP) e verba de gabinete, com dados da Câmara dos Deputados.</li>
       <li><b>Senadores</b>: salário e cota parlamentar (CEAPS), com dados do Senado Federal. É um piso: a equipe do gabinete ainda não entra.</li>
-      <li><b>Prefeitos e vereadores do Ceará</b>: despesa realizada (empenhado menos anulações) das câmaras municipais e dos gabinetes do prefeito e do vice, com dados do TCE-CE, conferida nota a nota contra o balancete.</li>
-      <li><b>Contador do ano</b>: soma o que já foi registrado nas três esferas e avança no ritmo de gasto do próprio ano até 31 de dezembro (estimativa). Os municípios entram pela média mensal de cada um, só os que já têm dados do ano.</li>
+      <li><b>Câmaras municipais do Ceará</b>: despesa realizada (empenhado menos anulações) da câmara inteira — salário dos vereadores, servidores e despesas da casa —, com dados do TCE-CE, conferida nota a nota contra o balancete. "Por vereador" é o custo da câmara inteira dividido pelo número de vereadores eleitos.</li>
+      <li><b>Gabinete do prefeito e do vice</b>: no TCE-CE são órgãos inteiros da prefeitura, que costumam incluir comunicação, cerimonial, procuradoria, assessorias e programas. Não são o custo do prefeito; por isso ficam fora do contador e aparecem numa linha própria. O salário individual do prefeito, do vice e dos vereadores não vem nos dados do TCE (a folha chega em lote, sem nomes).</li>
+      <li><b>Contadores do ano</b>: o principal soma deputados federais e senadores; o das câmaras do Ceará é separado. Os dois somam o que já foi registrado e avançam no ritmo de gasto do próprio ano até 31 de dezembro (estimativa). Nos cartões e no mapa aparece só o valor já registrado.</li>
+      <li><b>Conferências antes de publicar</b>: o robô do hub não publica uma esfera enquanto o robô dela estiver rodando, se o número de vereadores não bater com a fonte ou se algum ano cair pela metade (sinal de coleta incompleta); nesses casos, mantém o último número bom.</li>
       <li><b>Mapa</b>: custo médio de um deputado federal ou senador do estado por mês, no ano em andamento (soma dos custos ÷ soma dos meses em exercício). Os municípios entram no painel do estado só no Ceará, por enquanto.</li>
       <li><b>Notas da semana</b>: em cada esfera, as notas emitidas nos 7 dias que terminam na nota mais recente já publicada (Câmara, Senado e TCE-CE publicam com atrasos diferentes). Folha de pessoal das prefeituras não entra. Valor de cada nota como publicado (sem correção).</li>
       <li><b>Fornecedores em mais de uma esfera</b>: empresas agrupadas pela raiz do CNPJ (8 primeiros dígitos, que junta matriz e filiais), com o que cada esfera pagou no ano.</li>
@@ -120,6 +131,6 @@
 
 <script src="vendor/mapa-brasil.js"></script>
 <script src="referencias.js?v=1"></script>
-<script src="hub.js?v=5"></script>
+<script src="hub.js?v=6"></script>
 </body>
 </html>

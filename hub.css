@@ -154,7 +154,7 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
   .cartoes, .rodape-cartoes { grid-template-columns: 1fr; }
   .dava { grid-template-columns: 1fr; }
 }
-@media (max-width: 860px) {
+@media (max-width: 1040px) {
   .hamb { display: block; }
   #menu { display: none; position: absolute; left: 0; right: 0; top: 56px; background: var(--marinho); flex-direction: column; padding: 8px 16px 14px; }
   #menu.aberto { display: flex; }
@@ -171,3 +171,11 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
 .hero .extenso { font-size: 18px; }
 .extenso { margin: 2px 0 6px; font-size: 15px; font-weight: 700; color: #C84C4C; letter-spacing: .01em; }
 .extenso:empty { display: none; }
+
+/* contador das câmaras do Ceará (separado do Congresso) */
+.cont-mun { margin: 22px auto 0; padding-top: 16px; border-top: 1px dashed var(--linha); max-width: 640px; }
+.contador2 { font: 800 clamp(26px, 5vw, 40px)/1.1 var(--sans); color: var(--vermelho); margin: 4px 0; }
+.comparar { margin: -6px 0 14px; font-size: 14px; color: var(--tinta); }
+.dava-ctl { display: block; margin-top: 12px; font-size: 13px; color: #D5DFEA; }
+.dava-ctl input { width: 100%; accent-color: #FF7B7B; }
+.mapa-leg { font-size: 12px; color: var(--suave); text-align: center; margin: 6px 0 0; }

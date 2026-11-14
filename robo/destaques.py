@@ -11,6 +11,8 @@ recente já publicada (cada esfera publica com um atraso diferente). Folha de pe
 prefeituras não entra (vem em lote, sem nome).
 """
 import json
+import re
+import unicodedata
 from collections import defaultdict
 from datetime import date, timedelta
 from pathlib import Path
@@ -132,31 +134,53 @@ def fornecedores(fd, fs, fm, ano: int) -> dict:
         if str(ano) not in (m.get("anos") or {}):
             continue
         sim = m["sim"]
+        # índice de CNPJ (busca): o que a prefeitura inteira pagou
         for ln in (fm.get(f"f/{sim}/{ano}.json") or {}).get("linhas") or []:
             nome, c, tipo, valor = ln[0], ln[1], ln[2], ln[4]
             if tipo != "PJ" or len(c or "") != 14:
                 continue
-            x = item(c, nome)
-            x["mun"][0] += valor
-            x["mun"][1].add(sim)
-            if valor > x["maior"]:
-                x["maior"], x["nome"] = valor, nome
             y = i14(c, nome)
             y["mun"] += valor
             y["cidades"][sim] += valor
+        # fornecedores em mais de uma esfera: só o que a CÂMARA e os GABINETES pagaram (mesmo escopo dos políticos)
         nd = fm.get(f"n/{sim}/{ano}.json") or {}
-        orgs = nd.get("orgaos") or {}
+        orgs, fz = nd.get("orgaos") or {}, nd.get("forn") or []
         for e in nd.get("emp") or []:
+            f = fz[e[4]] if e[4] < len(fz) else None
+            if not f or len(f[1] or "") != 14:
+                continue
+            liq = (e[5] or 0) - (e[6] or 0)
+            x = item(f[1], f[0])
+            x["mun"][0] += liq
+            x["mun"][1].add(sim)
             if (orgs.get(e[0]) or ["", ""])[1] == "camara":
-                f = (nd.get("forn") or [])[e[4]] if e[4] < len(nd.get("forn") or []) else None
-                if f and len(f[1] or "") == 14 and _raiz(f[1]) in g:
-                    g[_raiz(f[1])]["mun"][2].add(sim)
+                x["mun"][2].add(sim)
+            if liq > x["maior"]:
+                x["maior"], x["nome"] = liq, f[0]
     return g, idx14
 
 
+# serviços tarifados e instituições cujo pagamento por várias esferas é esperado (não informa nada)
+_ESPERADOS = re.compile(r"\b(ENEL|COELCE|ENERGISA|EQUATORIAL|NEOENERGIA|CEMIG|COPEL|LIGHT|CELPE|COSERN|CPFL|ELETRO|ENERGIA ELETRICA|"
+                        r"COMPANHIA ENERGETICA|CAGECE|SANEAMENTO|SABESP|COMPESA|CAERN|AGUA E ESGOTO|BANCO|CAIXA ECONOMICA|BANRISUL|"
+                        r"CORREIOS|EMPRESA BRASILEIRA DE CORREIOS|SANTA CASA|HOSPITAL|IRMANDADE|BENEFICENCIA|"
+                        r"TAM LINHAS|LATAM|GOL LINHAS|AZUL LINHAS|VRG|AVIANCA|TELEFONICA|TELEMAR|OI S|CLARO|TIM S|"
+                        r"RECEITA FEDERAL|PREVIDENCIA|INSTITUTO NACIONAL DO SEGURO|MUNICIPIO DE|PREFEITURA|GOVERNO DO ESTADO|"
+                        r"CELULAR FUNCIONAL|CAMARA DOS DEPUTADOS|SENADO FEDERAL|CAMARA MUNICIPAL)\b")
+
+
+def esperado(nome: str) -> bool:
+    n = unicodedata.normalize("NFKD", nome or "").encode("ascii", "ignore").decode().upper()
+    return bool(_ESPERADOS.search(n))
+
+
 def multi_esfera(g: dict, nomes_mun: dict, limite: int = 20) -> list[list]:
+    """Empresas pagas por mais de uma esfera (municípios: só câmara e gabinetes), sem os serviços tarifados,
+    bancos, Correios, companhias aéreas, hospitais e órgãos públicos."""
     out = []
     for raiz, x in g.items():
+        if esperado(x["nome"]):
+            continue
         esf = (x["dep"][0] > 0) + (x["sen"][0] > 0) + (x["mun"][0] > 0)
         if esf < 2:
             continue
@@ -202,6 +226,15 @@ def gerar(fd, fs, fm, ano: int, hoje: date, sites: dict, saida: Path) -> dict:
         for k, v in grupos.items():
             _gravar(saida / "cnpj" / f"{k}.json", v)
     notas = [[e, v, mascara(o), mascara(q), onde, d, u] for e, v, o, q, onde, d, u in notas]
+    # notas iguais (mesma pessoa, fornecedor, dia e valor) viram uma linha "2 notas"
+    grp = {}
+    for n in notas:
+        k = (n[0], n[2], n[3], n[5], n[1])
+        if k in grp:
+            grp[k][7] += 1
+        else:
+            grp[k] = n + [1]
+    notas = [n[:1] + [round(n[1] * n[7], 2)] + n[2:7] + [n[7]] for n in grp.values()]
     dest = {"ano": ano, "gerado_em": hoje.isoformat(), "notas_semana": sorted(notas, key=lambda x: -x[1])[:5],
             "notas_semana_total": len(notas), "janelas": janelas, "multi_esfera": multi, "cnpjs": len(idx14), "status": status,
             # para a busca por nome de empresa: as maiores de cada esfera

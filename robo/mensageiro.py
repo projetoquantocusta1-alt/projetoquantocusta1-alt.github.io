@@ -153,45 +153,94 @@ def senadores(f: Fonte, ano: int) -> dict:
 
 
 def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
-    """Câmaras municipais + gabinetes do prefeito e do vice, nos municípios que já têm dados do ano."""
+    """Câmaras municipais do Ceará (o contador e os cartões) e, à parte, os órgãos "Gabinete do Prefeito/Vice".
+
+    O órgão Gabinete do Prefeito no TCE-CE inclui comunicação, cerimonial, procuradoria e programas: não é o
+    custo do prefeito. Por isso não entra no "custo dos políticos"; aparece numa linha própria.
+    Só anos com os 184 municípios entram no histórico; o ano corrente entra como parcial.
+    """
     meta = f.get("meta.json") or {}
     res = f.get("resumo.json") or {}
     campos = res.get("campos") or []
     ix = {c: i for i, c in enumerate(campos)}
     fatores = {str(k): v for k, v in ((meta.get("ipca") or {}).get("fatores") or {}).items()}
     total_mun = meta.get("total_municipios") or len(res.get("municipios") or []) or 184
-    por_ano: dict[str, list] = {}
+    por_ano: dict[str, dict] = {}
     ritmo_mensal = ja = 0.0
-    vereadores = cam_ano = 0.0
-    com_dados = 0
     for m in res.get("municipios") or []:
         for a, ln in (m.get("anos") or {}).items():
-            v = sum(ln[ix[c]] or 0 for c in ("camara", "gab_prefeito", "gab_vice"))
-            q = por_ano.setdefault(a, [0.0, 0])
-            q[0] += v
-            q[1] += 1
+            q = por_ano.setdefault(a, {"camara": 0.0, "gabinetes": 0.0, "n": 0, "vereadores": 0, "pop": 0, "pop_n": 0})
+            cam = ln[ix["camara"]] or 0
+            q["camara"] += cam
+            q["gabinetes"] += (ln[ix["gab_prefeito"]] or 0) + (ln[ix["gab_vice"]] or 0)
+            q["n"] += 1
+            q["vereadores"] += ln[ix["n_vereadores"]] or 0
+            if ln[ix["populacao"]]:
+                q["pop"] += ln[ix["populacao"]]
+                q["pop_n"] += 1
             if int(a) == ano:
                 meses = (ln[ix["mes_ref"]] or 0) % 100
                 if meses:
-                    com_dados += 1
-                    ritmo_mensal += v / meses
-                    ja += v
-            if int(a) == ano - 1 and ln[ix["n_vereadores"]]:
-                vereadores += ln[ix["n_vereadores"]]
-                cam_ano += ln[ix["camara"]] or 0
-    # estimativa no mesmo instante para todos: média mensal de cada município × meses já fechados do ano
+                    ritmo_mensal += cam / meses
+                    ja += cam
+    completos = sorted(int(a) for a, q in por_ano.items() if q["n"] >= total_mun)
+    atual = por_ano.get(str(ano), {"camara": 0.0, "gabinetes": 0.0, "n": 0, "vereadores": 0})
     md = max(0, mes_atual - 1)
     ja_est = ritmo_mensal * md if md else ja
     cont = ritmo(ano, ja_est, md, ritmo_mensal * (12 - md))
-    hist = [[int(a), r2(v * fatores.get(a, 1)), n >= total_mun] for a, (v, n) in sorted(por_ano.items())]
+    hist = [[a, r2(por_ano[str(a)]["camara"] * fatores.get(str(a), 1)), a < ano] for a in completos]
+    if atual["n"] and ano not in completos:
+        hist.append([ano, r2(atual["camara"] * fatores.get(str(ano), 1)), False])
+    # vereadores e custo por vereador: último ano completo (o atual, se já estiver completo)
+    ref = max(completos) if completos else None
+    fechado = max((a for a in completos if a < ano), default=None)
+    q_ref = por_ano[str(ref)] if ref else None
+    q_f = por_ano[str(fechado)] if fechado else None
+    desde = completos[0] if completos else None
+    serie_completa = bool(completos) and completos == list(range(2017, ano + 1))
     return {
-        "ano": ano, "em_coleta": com_dados < total_mun, "cobertura": com_dados, "total_municipios": total_mun,
+        "ano": ano, "em_coleta": atual["n"] < total_mun or not serie_completa,
+        "cobertura": atual["n"], "total_municipios": total_mun, "anos_completos": completos,
         "total_ano": r2(ja_est), "registrado_ano": r2(ja), "previsto_ano": cont["teto"], "contador": cont,
-        "historico": hist, "desde": 2017,
-        "por_vereador": {"ano": ano - 1, "valor": r2(cam_ano * fatores.get(str(ano - 1), 1) / vereadores)} if vereadores else None,
-        "vereadores": int(vereadores) or None,
+        "gabinetes_registrado_ano": r2(atual["gabinetes"]),
+        "historico": hist, "desde": desde,
+        "vereadores": int(q_ref["vereadores"]) if q_ref else None, "vereadores_ano": ref,
+        # custo da câmara inteira (vereadores, servidores e despesas) dividido pelo número de vereadores
+        "por_vereador": {"ano": fechado, "valor": r2(q_f["camara"] * fatores.get(str(fechado), 1) / q_f["vereadores"])} if q_f and q_f["vereadores"] else None,
+        "populacao": int(q_ref["pop"]) if q_ref and q_ref["pop_n"] >= total_mun else None,
         "atualizado_em": meta.get("gerado_em"), "url": SITE.format(repo=REPOS["municipios"]),
+        "_conferir": {"vereadores_fonte": int(q_ref["vereadores"]) if q_ref else None},
     }
+
+
+# ------------------------------------------------------------------ validações (antes de publicar)
+def robo_rodando(repo: str) -> bool:
+    """True se algum robô do repositório está rodando agora (API pública do GitHub)."""
+    try:
+        req = urllib.request.Request(f"https://api.github.com/repos/{CONTA}/{repo}/actions/runs?status=in_progress&per_page=20",
+                                     headers={"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            runs = json.loads(r.read().decode()).get("workflow_runs") or []
+        return any("pages" not in (x.get("name") or "").lower() for x in runs)
+    except Exception:  # noqa: BLE001 — sem resposta do GitHub: não bloqueia
+        return False
+
+
+def validar(nome: str, x: dict, ano: int) -> list[str]:
+    """Problemas que impedem publicar a esfera (o hub mantém o último número bom)."""
+    erros = []
+    hist = [h for h in x.get("historico") or [] if h[2] and h[0] < ano]
+    for (a0, v0, _), (a1, v1, _) in zip(hist, hist[1:]):
+        # coleta incompleta aparece como queda forte (ou salto absurdo se o ano anterior estava pela metade)
+        if a1 == a0 + 1 and v0 > 0 and (v1 < 0.5 * v0 or v1 > 2.5 * v0):
+            erros.append(f"{a1}: variação de {100 * (v1 / v0 - 1):+.0f}% sobre {a0} (coleta incompleta?)")
+    if nome == "municipios":
+        c = x.get("_conferir") or {}
+        if x.get("vereadores") != c.get("vereadores_fonte"):
+            erros.append("vereadores diferente da soma da fonte")
+        if x.get("cobertura", 0) < x.get("total_municipios", 0) and not x.get("em_coleta"):
+            erros.append("cobertura incompleta sem aviso de coleta")
+    return erros
 
 
 # ------------------------------------------------------------------ fase 2: estados e busca
@@ -218,17 +267,18 @@ def estados(fd: Fonte, fs: Fonte, fm: Fonte, ano: int) -> dict:
     ix = {c: i for i, c in enumerate(res.get("campos") or [])}
     meta = fm.get("meta.json") or {}
     if ix:
-        n = cust = em = pop = 0
+        n = cust = gab = em = pop = 0
         for m in res.get("municipios") or []:
             ln = (m.get("anos") or {}).get(str(ano))
             if not ln:
                 continue
             n += 1
-            cust += sum(ln[ix[c]] or 0 for c in ("camara", "gab_prefeito", "gab_vice"))
+            cust += ln[ix["camara"]] or 0
+            gab += (ln[ix["gab_prefeito"]] or 0) + (ln[ix["gab_vice"]] or 0)
             em += ln[ix["emendas"]] or 0 if "emendas" in ix else 0
             pop += ln[ix["populacao"]] or 0 if "populacao" in ix else 0
         x = e("CE")
-        x["mun"] = {"com_dados": n, "total": meta.get("total_municipios") or 184, "custo": r2(cust), "emendas": r2(em),
+        x["mun"] = {"com_dados": n, "total": meta.get("total_municipios") or 184, "custo": r2(cust), "gabinetes": r2(gab), "emendas": r2(em),
                     "populacao": int(pop) or None}
     out = {}
     for u, x in uf.items():
@@ -286,7 +336,14 @@ def montar(local: Path | None = None, hoje: date | None = None, anterior: dict |
              "municipios": lambda f: municipios(f, ano, hoje.month)}
     for nome, fn in fazer.items():
         try:
-            out["esferas"][nome] = fn(Fonte(REPOS[nome], local))
+            if not local and robo_rodando(REPOS[nome]):
+                raise RuntimeError("robô da esfera ainda rodando")
+            x = fn(Fonte(REPOS[nome], local))
+            erros = validar(nome, x, ano)
+            if erros:
+                raise RuntimeError("validação: " + "; ".join(erros))
+            x.pop("_conferir", None)
+            out["esferas"][nome] = x
             out["status"][nome] = "ok"
         except Exception as e:  # noqa: BLE001
             velho = (anterior.get("esferas") or {}).get(nome)
@@ -297,7 +354,9 @@ def montar(local: Path | None = None, hoje: date | None = None, anterior: dict |
                 out["status"][nome] = f"indisponível ({e})"
     es = out["esferas"]
     out["contador"] = {k: v["contador"] for k, v in es.items()}
-    out["total_ano"] = r2(sum(v["total_ano"] for v in es.values()))
+    # o contador principal é o Congresso Nacional; os municípios do Ceará têm contador próprio
+    out["total_ano"] = r2(sum(es[k]["total_ano"] for k in ("deputados", "senadores") if k in es))
+    out["total_ano_municipios"] = r2(es["municipios"]["total_ano"]) if "municipios" in es else None
     bases = [es[k]["dava"] for k in ("deputados", "senadores") if es.get(k, {}).get("dava")]
     if bases:
         base = sum(b["base"] for b in bases)
