@@ -27,7 +27,7 @@ const tot = () => E.ano === "total";
 const corrigir = () => $("#f-ipca").checked;
 const fatorDe = (r) => (corrigir() ? r?.fator_ipca || 1 : 1);
 const iniciais = (n) => (n || "?").split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
-const foto = (d, cls = "") => d.foto ? `<img class="${cls}" src="${esc(d.foto)}" alt="" loading="lazy">` : `<span class="foto sem ${cls}">${esc(iniciais(d.nome))}</span>`;
+const foto = (d, cls = "") => d.foto ? `<img class="${cls}" src="${esc(d.foto)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="foto sem ${cls}">${esc(iniciais(d.nome))}</span>`;
 
 async function resumo(a) {
   if (E.res[a]) return E.res[a];

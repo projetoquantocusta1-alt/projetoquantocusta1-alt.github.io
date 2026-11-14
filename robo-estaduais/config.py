@@ -32,6 +32,13 @@ ALECE = {
     "perfil": "https://www.al.ce.gov.br/deputados/{slug}",
 }
 
+# Apelidos da verba que não aparecem no nome completo da folha (conferidos em fonte pública).
+# Chave: nome na planilha da verba; valor: nome completo na folha da Alece.
+APELIDOS = {
+    "NIZO COSTA": "ANTONIO VALDENIZO DA COSTA",   # ficha oficial da Alece
+    "GORDIM ARAUJO": "ELVILO ARAUJO DE OLIVEIRA",  # "Gordim" é o apelido de Elvilo Araújo (imprensa)
+}
+
 # Categorias da verba (VDP), pela descrição do empenho. A primeira regra que casar vale.
 CATEGORIAS_VDP = [
     ("Combustível", r"COMBUST|ABASTECIMENTO"),

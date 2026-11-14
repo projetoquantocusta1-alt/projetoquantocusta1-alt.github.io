@@ -14,6 +14,7 @@ Saídas (pastas configuráveis por variáveis de ambiente SAIDA e BRUTOS):
     SAIDA/AAAA/fornecedores.json    quem recebeu da verba no ano
 """
 import argparse
+import difflib
 import json
 import logging
 import os
@@ -134,6 +135,104 @@ def coletar(hoje: date, limite_s: float, forcar: bool = False) -> int:
     return feitos
 
 
+# ------------------------------------------------------------------ nomes
+NAO_IDENTIFICADO = "nao-identificado"
+_NAO_E_NOME = re.compile(r"\b(PLANO|SAUDE|FOLHA|PAGAMENTO|EMPENHO|ANULACAO|REFERENTE|CONTRATO)\b")
+
+
+def _parecido(a: str, b: str, minimo: float) -> bool:
+    return difflib.SequenceMatcher(None, a, b).ratio() >= minimo
+
+
+def _melhor(alvo: str, opcoes, minimo: float):
+    """Opção mais parecida com o alvo, se for bem parecida e sem empate próximo."""
+    notas = sorted(((difflib.SequenceMatcher(None, alvo, o).ratio(), o) for o in opcoes), reverse=True)
+    if notas and notas[0][0] >= minimo and (len(notas) == 1 or notas[0][0] - notas[1][0] >= 0.05):
+        return notas[0][1]
+    return None
+
+
+def _palavras_contidas(pals: list[str], nome_folha: str) -> bool:
+    """Cada palavra do nome parlamentar está no nome completo (aceita erro de digitação em palavras longas)."""
+    alvo = alece.palavras(nome_folha)
+    def bate(p, q):
+        return (p == q or (len(p) >= 5 and _parecido(p, q, 0.8))
+                or (len(p) >= 4 and len(q) >= 4 and p[:4] == q[:4]))   # apelido abreviado: Martinha/Marta, Keivia/Keivilanny
+    return bool(pals) and all(any(bate(p, q) for q in alvo) for p in pals)
+
+
+def resolver_nomes(meses_brutos: list[dict], cad: dict) -> tuple[dict, dict]:
+    """Liga, de uma vez para todos os meses, os nomes da verba (nome parlamentar, às vezes digitado com erro)
+    e os nomes da folha (nome completo) a um mesmo identificador.
+    Ordem: cadastro do site da Alece (exato ou quase igual) -> tabela de apelidos conferidos -> palavras do
+    nome parlamentar dentro de um único nome completo da folha -> nome quase igual a outro já resolvido.
+    Devolve (nome na verba -> id, nome na folha -> id)."""
+    folha_nomes = sorted({f["nome"] for m in meses_brutos for f in (m.get("folha") or {}).get("deputados") or []})
+    vdp_nomes = sorted({r["deputado"] for m in meses_brutos for r in m.get("vdp") or []})
+    por_parl = {k: x["slug"] for k, x in cad.items() if x.get("slug")}
+    completo_de = {x["slug"]: alece.norm(x["nome_completo"]) for x in cad.values() if x.get("slug") and x.get("nome_completo")}
+    folha_norm = {alece.norm(n): n for n in folha_nomes}
+    apelidos = {alece.chave(k): alece.norm(v) for k, v in config.APELIDOS.items()}
+
+    id_folha: dict[str, str] = {}
+    for i, comp in completo_de.items():                      # cadastro: nome completo idêntico ou quase (Filho/Júnior)
+        n = folha_norm.get(comp) or folha_norm.get(_melhor(comp, folha_norm, 0.85) or "")
+        if n and n not in id_folha:
+            id_folha[n] = i
+
+    def folha_por_palavras(k: str):
+        # prefere nomes da folha ainda sem dono (ex.: "Felipe Aguiar" não é Felipe Mota); se o único que bate já tem dono,
+        # é outro apelido da mesma pessoa (ex.: "Luana Ribeiro" e "Luana Régia")
+        cand = [n for n in folha_nomes if _palavras_contidas(k.split(), n)]
+        livres = [n for n in cand if n not in id_folha]
+        if len(livres) == 1:
+            return livres[0]
+        return cand[0] if len(cand) == 1 else None
+
+    id_vdp: dict[str, str] = {}
+    pendentes = []
+    for v in vdp_nomes:
+        k = re.sub(r" POR SOLICITACAO.*$", "", alece.chave(v))
+        if not k or _NAO_E_NOME.search(k):
+            continue
+        prefixo = [c for c in por_parl if c.startswith(k + " ")] if len(k) >= 4 else []   # "ALMIR B" -> "ALMIR BIE"
+        i = (por_parl.get(k) or por_parl.get(_melhor(k, por_parl, 0.85) or "")
+             or (por_parl[prefixo[0]] if len(prefixo) == 1 else None))
+        if not i and k in apelidos:
+            n = folha_norm.get(apelidos[k])
+            i = id_folha.get(n) or (slug(n) if n else None)
+            if n:
+                id_folha.setdefault(n, i)
+        if not i:
+            n = folha_por_palavras(k)
+            if n:
+                i = id_folha.get(n) or slug(n)
+                id_folha.setdefault(n, i)
+        if i:
+            id_vdp[v] = i
+        else:
+            pendentes.append((v, k))
+    # nomes digitados com erro de quem não está no cadastro: quase igual a outro nome já resolvido
+    chaves_ok = {alece.chave(v): i for v, i in id_vdp.items()}
+    for v, k in pendentes:
+        m = _melhor(k, chaves_ok, 0.86)
+        if m:
+            id_vdp[v] = chaves_ok[m]
+        elif len(k.split()) >= 2:
+            id_vdp[v] = slug(k)                                  # pessoa sem salário ligado: aparece só com a verba
+            chaves_ok[k] = id_vdp[v]
+    # deputados do cadastro sem nome completo casado: palavras do nome parlamentar na folha
+    usados = set(id_folha.values())
+    for k, i in por_parl.items():
+        if i in usados:
+            continue
+        n = folha_por_palavras(k)
+        if n and n not in id_folha:
+            id_folha[n] = i
+            usados.add(i)
+    return id_vdp, id_folha
+
+
 # ------------------------------------------------------------------ montagem
 def montar(hoje: date):
     cad = ler(BRUTOS / "cadastro.json", {}) or {}
@@ -149,6 +248,8 @@ def montar(hoje: date):
     id_por_parlamentar = {k: x["slug"] for k, x in cad.items() if x.get("slug")}
     info_por_id = {x["slug"]: x for x in cad.values() if x.get("slug")}
     situacao_meses, sem_casar, assembleia = {}, defaultdict(set), {}
+    todos = [m for ms in por_ano.values() for m in ms]
+    id_vdp, id_folha = resolver_nomes(todos, cad)
     anos = sorted(por_ano)
     for ano in anos:
         deps: dict[str, dict] = {}
@@ -161,7 +262,8 @@ def montar(hoje: date):
             x = deps.get(i)
             if not x:
                 inf = info_por_id.get(i, {})
-                x = deps[i] = {"id": i, "nome": inf.get("nome") or nome.title(), "nome_completo": inf.get("nome_completo") or completo,
+                rot = "Nome não identificado na planilha" if i == NAO_IDENTIFICADO else nome.title()
+                x = deps[i] = {"id": i, "nome": inf.get("nome") or rot, "nome_completo": inf.get("nome_completo") or completo,
                                "partido": inf.get("partido", ""), "foto": inf.get("foto", ""), "atual": bool(inf.get("atual")),
                                "url": config.ALECE["perfil"].format(slug=i) if i in info_por_id else "",
                                "folha": 0.0, "meses_folha": 0, "verba": 0.0, "meses_verba": 0, "notas": 0,
@@ -176,38 +278,12 @@ def montar(hoje: date):
             folha = (mes.get("folha") or {}).get("deputados") or []
             por_mes[chave_mes] = {"folha": round(sum(f["bruta"] - f.get("teto", 0) + f.get("decimo", 0) for f in folha), 2),
                                   "verba": round(sum(r["valor"] for r in mes.get("vdp") or []), 2)}
-            nomes_folha = [f["nome"] for f in folha]
-            id_da_folha = {}
-            for f in folha:
-                i = id_por_completo.get(alece.norm(f["nome"]))
-                if i:
-                    id_da_folha[f["nome"]] = i
-            # 2ª tentativa: todas as palavras do nome parlamentar dentro de um único nome completo da folha
-            candidatos = {k: v for k, v in id_por_parlamentar.items() if v not in id_da_folha.values()}
-            for r in mes.get("vdp") or []:
-                k = alece.chave(r["deputado"])
-                candidatos.setdefault(k, id_por_parlamentar.get(k) or slug(r["deputado"]))
-            livres = [n for n in nomes_folha if n not in id_da_folha]
-            for k, i in candidatos.items():
-                pals = set(k.split())
-                achados = [n for n in livres if pals and pals <= set(alece.palavras(n))]
-                if len(achados) == 1 and i not in id_da_folha.values():
-                    id_da_folha[achados[0]] = i
-                    livres.remove(achados[0])
             # verba
             vistos = set()
             for r in mes.get("vdp") or []:
-                k = alece.chave(r["deputado"])
-                i = id_por_parlamentar.get(k)
-                if not i:
-                    completo = alece.casar_folha(r["deputado"], nomes_folha, cad)
-                    i = id_da_folha.get(completo) if completo else None
-                    if not i:
-                        i = slug(completo) if completo else slug(r["deputado"])
-                        if completo:
-                            id_da_folha.setdefault(completo, i)
-                        else:
-                            sem_casar[ano].add(r["deputado"])
+                i = id_vdp.get(r["deputado"]) or NAO_IDENTIFICADO
+                if i == NAO_IDENTIFICADO:
+                    sem_casar[ano].add(r["deputado"])
                 x = dep(i, r["deputado"])
                 x["verba"] += r["valor"]
                 x["notas"] += 1
@@ -223,7 +299,7 @@ def montar(hoje: date):
                 deps[i]["meses_verba"] += 1
             # folha
             for f in folha:
-                i = id_da_folha.get(f["nome"]) or slug(f["nome"])
+                i = id_folha.get(f["nome"]) or slug(f["nome"])
                 x = dep(i, f["nome"], f["nome"])
                 if not x["nome_completo"]:
                     x["nome_completo"] = f["nome"]
