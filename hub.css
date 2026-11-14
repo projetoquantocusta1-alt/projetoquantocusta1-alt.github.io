@@ -179,3 +179,5 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
 .dava-ctl { display: block; margin-top: 12px; font-size: 13px; color: #D5DFEA; }
 .dava-ctl input { width: 100%; accent-color: #FF7B7B; }
 .mapa-leg { font-size: 12px; color: var(--suave); text-align: center; margin: 6px 0 0; }
+.volta a { color: #C9D5E3; text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 11px; border-radius: 7px; white-space: nowrap; }
+.volta a:hover { color: #fff; background: rgba(255,255,255,.08); }
