@@ -1,6 +1,6 @@
 # Projeto Quanto Custa — hub
 
-Página de entrada do projeto: https://projetoquantocusta1-alt.github.io/
+Página de entrada do projeto: https://quantocustaum.com/
 
 - Mostra o contador do ano (deputados federais + senadores + câmaras e gabinetes dos municípios do Ceará) e leva aos três sites.
 - A página não calcula nada: lê só `dados/totais_hub.json`.

@@ -127,9 +127,9 @@ function dava(T) {
 
 // ---------------------------------------------------------------- mapa por estado
 const SITES = {
-  dep: "https://projetoquantocusta1-alt.github.io/quanto-custa-deputados/",
-  sen: "https://projetoquantocusta1-alt.github.io/quanto-custa-senadores/",
-  mun: "https://projetoquantocusta1-alt.github.io/quanto-custa-municipios/",
+  dep: "https://quantocustaum.com/quanto-custa-deputados/",
+  sen: "https://quantocustaum.com/quanto-custa-senadores/",
+  mun: "https://quantocustaum.com/quanto-custa-municipios/",
 };
 const UF_ROT = { AC: [58, 228], AL: [626, 240, 583, 233], AP: [336, 62], AM: [150, 150], BA: [500, 290], CE: [538, 160], DF: [446, 318, 409, 330],
   ES: [556, 404, 520, 392], GO: [370, 352], MA: [446, 168], MT: [282, 282], MS: [302, 412], MG: [452, 374], PA: [330, 140], PB: [626, 192, 590, 193],

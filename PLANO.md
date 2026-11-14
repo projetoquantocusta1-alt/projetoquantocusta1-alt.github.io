@@ -16,7 +16,7 @@
 - `quanto-custa-nucleo`: código comum a todos os estados (privacidade de CPF, correção pelo IPCA, http, visual, montagem das páginas).
   Cada estado instala o núcleo no robô; corrige-se uma vez, vale para todos.
 - `quanto-custa-municipios-XX` (XX = sigla do estado): só o robô de coleta daquele estado + os dados do site.
-  Endereço: `https://projetoquantocusta1-alt.github.io/quanto-custa-municipios-xx/`.
+  Endereço: `https://quantocustaum.com/quanto-custa-municipios-xx/`.
 - Hub: o Mensageiro lê uma lista de estados ativos e soma os totais; no mapa, clicar num estado leva ao site dele
   (estados sem dados aparecem como "em breve").
 - Futuro: deputados estaduais e governador podem morar no repositório do próprio estado ("tudo sobre o estado").
