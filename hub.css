@@ -189,3 +189,22 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
 .vis-ponto { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #16865D; box-shadow: 0 0 0 0 rgba(22,134,93,.5); animation: visPulso 2.2s infinite; }
 @keyframes visPulso { 70% { box-shadow: 0 0 0 7px rgba(22,134,93,0); } 100% { box-shadow: 0 0 0 0 rgba(22,134,93,0); } }
 @media (prefers-reduced-motion: reduce) { .vis-ponto { animation: none; } }
+
+/* menu "Deputados": federais ou estaduais */
+.sub-menu { position: relative; }
+.sub-bot { background: none; border: 0; color: #C9D5E3; font: 500 14px var(--sans); padding: 8px 11px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+.sub-bot:hover, .sub-menu:focus-within .sub-bot { color: #fff; background: rgba(255,255,255,.08); }
+.sub-lista { display: none; position: absolute; top: 100%; left: 0; z-index: 30; min-width: 270px; padding: 6px; margin-top: 4px; background: #fff; border-radius: 10px; box-shadow: 0 12px 32px rgba(20,40,63,.22); }
+.sub-menu:hover .sub-lista, .sub-menu:focus-within .sub-lista, .sub-menu.aberto .sub-lista { display: block; }
+.sub-menu::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 8px; } /* ponte para o mouse não "cair" no vão */
+#menu .sub-lista a { display: block; color: var(--marinho); font-weight: 700; padding: 9px 12px; border-radius: 7px; white-space: normal; }
+#menu .sub-lista a small { display: block; font-weight: 500; font-size: 12px; color: var(--suave); }
+#menu .sub-lista a:hover { background: #E6F0F9; color: var(--marinho); }
+@media (max-width: 1040px) {
+  .sub-bot { display: none; }
+  .sub-lista { display: block; position: static; box-shadow: none; background: none; padding: 0; margin: 0; min-width: 0; }
+  #menu .sub-lista a { color: #C9D5E3; font-weight: 500; padding: 8px 11px; }
+  #menu .sub-lista a small { color: #8FA3B8; }
+  #menu .sub-lista a::before { content: "Deputados "; }
+  #menu .sub-lista a:hover { background: rgba(255,255,255,.08); color: #fff; }
+}
