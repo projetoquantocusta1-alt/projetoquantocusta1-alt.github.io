@@ -44,5 +44,16 @@
 <footer class="rodape">Projeto Quanto Custa · projeto independente, sem vínculo com nenhum órgão público · <a href="https://quantocustaum.com/sobre/">Sobre</a> · <a href="https://quantocustaum.com/privacidade/">Privacidade</a> · <a href="https://github.com/projetoquantocusta1-alt/projetoquantocusta1-alt.github.io/issues">Pedir correção</a> · <a href="https://github.com/projetoquantocusta1-alt">Código aberto</a></footer>
 <!-- contador de visitas sem cookies e sem dados pessoais (GoatCounter) -->
 <script data-goatcounter="https://quantocustaum.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script>/* número de visitas no rodapé (some sozinho se o GoatCounter não responder) */
+(function () {
+  fetch("https://quantocustaum.goatcounter.com/counter/TOTAL.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    var n = d && parseInt(String(d.count || "").replace(/\D/g, ""), 10), rod = document.querySelector(".rodape");
+    if (!n || !rod) return;
+    var s = document.createElement("span"); s.id = "qc-visitas";
+    s.textContent = " · " + n.toLocaleString("pt-BR") + (n === 1 ? " visita" : " visitas");
+    rod.appendChild(s);
+  }).catch(function () {});
+})();
+</script>
 </body>
 </html>
