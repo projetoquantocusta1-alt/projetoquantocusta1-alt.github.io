@@ -167,7 +167,7 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
     total_mun = meta.get("total_municipios") or len(res.get("municipios") or []) or 184
     por_ano: dict[str, dict] = {}
     diverg: dict[str, list] = {}   # câmaras que não enviaram o balancete ou cujas notas não batem (ano atual)
-    ritmo_mensal = ja = 0.0
+    ritmo_mensal = ja = pago_ano = 0.0
     for m in res.get("municipios") or []:
         for a, ln in (m.get("anos") or {}).items():
             q = por_ano.setdefault(a, {"camara": 0.0, "gabinetes": 0.0, "n": 0, "vereadores": 0, "pop": 0, "pop_n": 0})
@@ -196,8 +196,13 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
             if int(a) == ano:
                 meses = (ln[ix["mes_ref"]] or 0) % 100
                 if meses:
-                    ritmo_mensal += cam / meses
+                    # ritmo do ano pelo PAGO: contratos e folha são empenhados de uma vez no começo do ano e pagos
+                    # mês a mês, então o empenhado corre na frente e inflaria a previsão. Sem balancete (pago
+                    # desconhecido), usa o empenhado das notas.
+                    pg = ln[ix["camara_pago"]] if "camara_pago" in ix and ln[ix["camara_pago"]] is not None else cam
+                    ritmo_mensal += pg / meses
                     ja += cam
+                    pago_ano += pg
     completos = sorted(int(a) for a, q in por_ano.items() if q["n"] >= total_mun)
     atual = por_ano.get(str(ano), {"camara": 0.0, "gabinetes": 0.0, "n": 0, "vereadores": 0})
     md = max(0, mes_atual - 1)
@@ -216,7 +221,7 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
     return {
         "ano": ano, "em_coleta": atual["n"] < total_mun or not serie_completa,
         "cobertura": atual["n"], "total_municipios": total_mun, "anos_completos": completos,
-        "total_ano": r2(ja_est), "registrado_ano": r2(ja), "previsto_ano": cont["teto"], "contador": cont,
+        "total_ano": r2(ja_est), "registrado_ano": r2(ja), "pago_ano": r2(pago_ano), "previsto_ano": cont["teto"], "contador": cont,
         "gabinetes_registrado_ano": r2(atual["gabinetes"]),
         "divergencias": {k: sorted(v) for k, v in diverg.items()},
         "historico": hist, "desde": desde,

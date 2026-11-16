@@ -52,3 +52,16 @@ def test_validacoes():
     assert M.validar("senadores", ruim, 2026)
     mun = {"historico": [], "vereadores": 316, "_conferir": {"vereadores_fonte": 2190}, "cobertura": 184, "total_municipios": 184, "em_coleta": False}
     assert any("vereadores" in e for e in M.validar("municipios", mun, 2026))
+
+
+def test_municipios_previsao_pelo_ritmo_do_pago(tmp_path):
+    """Câmara empenha o ano quase todo em janeiro: a previsão segue o pago, não o empenhado."""
+    m = tmp_path / "quanto-custa-municipios" / "docs" / "dados"
+    _g(m / "meta.json", {"total_municipios": 2, "ipca": {"fatores": {}}})
+    campos = ["mes_ref", "populacao", "gasto_total", "camara", "gab_prefeito", "gab_vice", "n_vereadores", "camara_pago"]
+    _g(m / "resumo.json", {"campos": campos, "municipios": [
+        {"anos": {"2026": [202606, 0, 0, 100, 0, 0, 9, 60]}},     # empenhou 100, pagou 60 em 6 meses -> 120 no ano
+        {"anos": {"2026": [202606, 0, 0, 30, 0, 0, 9, None]}},    # sem balancete: usa o empenhado -> 60 no ano
+    ]})
+    mun = M.montar(tmp_path, hoje=date(2026, 7, 10))["esferas"]["municipios"]
+    assert mun["previsto_ano"] == 180 and mun["registrado_ano"] == 130 and mun["pago_ano"] == 90
