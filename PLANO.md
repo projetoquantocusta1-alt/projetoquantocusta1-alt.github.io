@@ -1,3 +1,17 @@
+# Regras do projeto (valem para todos os sites e robôs)
+
+1. **Toda e qualquer limitação dos dados é explicada no próprio site, com o motivo.** Ano que falta, órgão que não
+   publica, valor que não dá para conferir, fonte diferente de outro estado, dado que ainda está sendo coletado:
+   o aviso aparece na página onde o número é mostrado (e na Metodologia), dizendo o que falta e por quê.
+2. **Divergência nos dados oficiais é sempre informada**, dizendo de quem é a responsabilidade (ex.: câmara que não
+   mandou o balancete ao TCE). Se o dado está errado na fonte e não avisamos, a culpa passa a ser nossa.
+3. **Não publicar número que não conseguimos conferir.** Na dúvida, fica de fora, com o aviso do item 1.
+4. **CPF nunca inteiro**: sempre mascarado (***.456.789-**), em dados, páginas e arquivos brutos.
+5. **Anonimato**: nenhum nome de autor nem link pessoal no site ("Sociedade do Progresso" pode).
+6. **robots.txt de cada fonte é respeitado**, e os robôs consultam devagar (pausa entre consultas).
+7. Robôs gravam como `robo-quanto-custa`; não enviar mudanças enquanto o robô do mesmo repositório estiver salvando.
+8. Não mudar as cores do mapa.
+
 # Plano: um repositório por estado (decidido em 13/11/2026)
 
 ## Decisão
