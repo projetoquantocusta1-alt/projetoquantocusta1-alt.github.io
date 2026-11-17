@@ -33,7 +33,8 @@ jobs:
           fi
       - name: Índice de transparência
         # se falhar, o arquivo anterior fica no ar (não impede os totais)
-        run: python robo/indice.py || echo "índice: falhou; arquivo anterior mantido"
+        run: |
+          python robo/indice.py || echo "indice falhou, arquivo anterior mantido"
       - name: Publicar
         run: |
           git config user.name  "robo-quanto-custa"
