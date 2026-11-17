@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Índice de Transparência — Projeto Quanto Custa</title>
+<meta name="description" content="Uma nota de 0 a 100 para Assembleias Legislativas, prefeituras e câmaras: quanto cada órgão facilita (ou dificulta) que o cidadão veja como o dinheiro público é gasto, com as provas.">
+<link rel="icon" href="https://quantocustaum.com/marca/favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="Índice de Transparência e Governança Pública — Projeto Quanto Custa">
+<meta property="og:description" content="Uma nota de 0 a 100 para Assembleias, prefeituras e câmaras, com as provas do que os robôs encontraram.">
+<meta property="og:image" content="https://quantocustaum.com/og.png">
+<meta property="og:url" content="https://quantocustaum.com/indice/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://quantocustaum.com/indice/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://quantocustaum.com/hub.css?v=11">
+<link rel="stylesheet" href="https://quantocustaum.com/marca/tokens.css?v=1">
+<link rel="stylesheet" href="https://quantocustaum.com/marca/marca.css?v=1">
+<link rel="stylesheet" href="indice.css?v=1">
+</head>
+<body>
+<header class="topo"><div class="topo-in"><a class="marca" href="https://quantocustaum.com/"><img class="marca-logo" src="https://quantocustaum.com/marca/logo-horizontal-negativo.svg" alt="Quanto Custa?" width="164" height="30"></a>
+<nav class="volta" style="display:flex;margin-left:auto"><a href="https://quantocustaum.com/">← Início</a></nav></div></header>
+<main class="ix">
+  <section class="ix-hero">
+    <span class="ix-selo">Prévia · a fórmula ainda pode mudar</span>
+    <h1>Índice de Transparência e Governança Pública</h1>
+    <p class="ix-sub">Uma nota de 0 a 100 para cada órgão: quanto ele facilita (ou dificulta) que o cidadão veja como o dinheiro público é gasto. A nota vem do que os robôs do projeto encontram todos os dias ao coletar os dados, e cada ponto perdido tem a sua prova.</p>
+  </section>
+
+  <div class="ix-abas" role="tablist">
+    <button type="button" class="ix-aba on" data-aba="assembleias" role="tab">Assembleias Legislativas</button>
+    <button type="button" class="ix-aba" data-aba="municipios" role="tab">Prefeituras e câmaras</button>
+    <label class="ix-filtro" id="f-uf-rot" hidden>Estado <select id="f-uf"><option value="">Todos</option><option value="CE">Ceará</option><option value="BA">Bahia</option></select></label>
+  </div>
+
+  <div class="ix-grade">
+    <section class="ix-caixa" id="lista" aria-live="polite"><p class="ix-carregando">Carregando…</p></section>
+    <section class="ix-caixa ix-ficha" id="ficha"></section>
+  </div>
+
+  <section class="ix-como" id="como"></section>
+  <p class="ix-atual" id="atual"></p>
+</main>
+<footer class="rodape">Projeto Quanto Custa · projeto independente, sem vínculo com nenhum órgão público · <a href="https://quantocustaum.com/sobre/">Sobre</a> · <a href="https://quantocustaum.com/privacidade/">Privacidade</a> · <a href="https://github.com/projetoquantocusta1-alt/projetoquantocusta1-alt.github.io/issues">Pedir correção</a> · <a href="https://github.com/projetoquantocusta1-alt">Código aberto</a></footer>
+<script src="indice.js?v=1"></script>
+<!-- contador de visitas sem cookies e sem dados pessoais (GoatCounter) -->
+<script data-goatcounter="https://quantocustaum.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>

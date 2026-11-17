@@ -1,0 +1,43 @@
+{
+  "_leia": "Avaliação das Assembleias Legislativas no Índice de Transparência. Cada critério tem os pontos e as provas (o que o robô encontrou ao coletar). A pontualidade é calculada sozinha pelo robo/indice.py, a partir dos meses publicados. Ao mudar uma nota, mude também a prova e a data.",
+  "avaliadas": [
+    {
+      "id": "ce", "sigla": "Alece", "nome": "Assembleia Legislativa do Ceará", "uf": "CE", "avaliado_em": "2026-11-17",
+      "repo_uf": "ce",
+      "fonte": "https://transparencia.al.ce.gov.br/",
+      "criterios": {
+        "acesso": [15, "O portal da transparência responde ao robô todos os dias, sem bloqueio nem erro."],
+        "formato": [15, "Verba (VDP) e folha de pagamento em planilha (CSV) por mês, prontas para baixar."],
+        "detalhe": [18, "Verba nota a nota, com o CNPJ do fornecedor e a descrição do gasto, e folha com o nome de cada pessoa. Perde 2 pontos: o que se publica é a nota de empenho, não a nota fiscal, e parte do gasto é de contratos globais (cartão de combustível, vale-refeição) que não mostram onde o dinheiro foi gasto no fim."],
+        "consistencia": [7, "Linhas que não são de nenhum deputado aparecem misturadas na planilha da verba (ex.: 'PLANO DE SAUDE', 'DEP'), e nomes vêm digitados de formas diferentes de um mês para outro."],
+        "cadastro": [2, "Não há um código fixo para cada deputado na planilha: o robô precisa casar os nomes com a lista oficial, e alguns não casam ('NELINHO' em 2023)."],
+        "historico": [0, "Os arquivos antes de 2023 misturam aposentadorias, pensões e empenhos anuais globais nas linhas dos deputados: não dá para separar o gasto de cada um. Por isso o site só mostra desde 2023."],
+        "estabilidade": [0, "O arquivo vem vazio, sem nenhuma mensagem de erro, se o mês for pedido com um dígito ('6' em vez de '06')."]
+      }
+    },
+    {
+      "id": "ba", "sigla": "ALBA", "nome": "Assembleia Legislativa da Bahia", "uf": "BA", "avaliado_em": "2026-11-17",
+      "repo_uf": "ba",
+      "fonte": "https://www.al.ba.gov.br/transparencia/verbas-idenizatorias",
+      "criterios": {
+        "acesso": [15, "O site responde ao robô todos os dias, sem bloqueio nem erro."],
+        "formato": [5, "Não há planilha nem arquivo de dados: o robô precisa abrir página por página (20 notas por vez) e depois cada nota, uma a uma. São milhares de páginas por ano."],
+        "detalhe": [10, "Verba nota a nota, com fornecedor, CPF/CNPJ e o valor glosado (recusado). Perde 10 pontos: a folha de pagamento com o nome de cada deputado não é publicada, só o subsídio fixado em lei."],
+        "consistencia": [15, "Os números fecham: a soma das notas menos as glosas bate com o total publicado, centavo por centavo."],
+        "cadastro": [3, "Parte dos deputados aparece só com um nome (apelido) na verba, sem código: o robô precisa casar com a lista oficial."],
+        "historico": [null, "Ainda não verificado: o projeto coleta a Bahia desde 2023. Enquanto isso, este critério fica fora da conta e a nota é calculada sobre os outros."],
+        "estabilidade": [5, "Endereços estáveis desde que o robô começou a coletar, e nenhuma armadilha encontrada."]
+      }
+    }
+  ],
+  "sem_nota": [
+    {"grupo": "sem_acesso", "titulo": "O site não respondeu ao robô", "orgaos": ["ALMG (MG)", "ALEPE (PE)", "CLDF (DF)", "ALRS (RS)", "ALMA (MA)"],
+     "explica": "O robô tentou várias vezes, de servidores diferentes, e o site não respondeu em nenhuma. Ainda não vira nota: o bloqueio pode ser só para robôs, e não para o cidadão. Vamos conferir de outra forma antes de dar nota."},
+    {"grupo": "sem_acesso", "titulo": "Erro no site", "orgaos": ["ALESP (SP)", "ALRN (RN)", "ALEPI (PI)"],
+     "explica": "O site respondeu com erro (serviço indisponível, erro interno ou certificado de segurança inválido). Pode ser passageiro: o robô vai tentar de novo."},
+    {"grupo": "em_avaliacao", "titulo": "Em avaliação", "orgaos": ["ALPB (PB)", "ALAL (AL)"],
+     "explica": "O site abre e há dados (na Paraíba, planilhas e PDFs; em Alagoas, páginas que carregam depois de abrir), mas o robô só testou a primeira página. A nota sai quando a coleta completa for testada."},
+    {"grupo": "nao_testada", "titulo": "Ainda não testadas", "orgaos": ["AC", "AM", "AP", "ES", "GO", "MS", "MT", "PA", "PR", "RJ", "RO", "RR", "SC", "SE", "TO"],
+     "explica": "As Assembleias destes estados entram à medida que o robô testa cada uma."}
+  ]
+}

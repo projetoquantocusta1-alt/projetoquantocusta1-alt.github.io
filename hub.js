@@ -104,7 +104,7 @@ function pendencias(T) {
   }).join("");
   el.innerHTML = `<div class="p-cab"><h3>Quem não prestou contas em ${P.ano}</h3><p>Cidades que não enviaram as contas ao tribunal de contas ou ao Tesouro, ou cujos números não fecham. A obrigação de informar é de cada prefeitura e câmara.</p></div>
     <div class="abas">${abas}</div><div class="grupos">${grupos}</div>
-    <div class="p-rod">Atualizado todo dia pelos robôs · fontes: TCE-CE e Tesouro Nacional (SICONFI) · lista completa, ano a ano: <a href="${SITES.mun}#camaras">Ceará</a> · <a href="${SITES.mun}?uf=ba#metodo">Bahia</a></div>`;
+    <div class="p-rod">Atualizado todo dia pelos robôs · fontes: TCE-CE e Tesouro Nacional (SICONFI) · lista completa, ano a ano: <a href="${SITES.mun}#camaras">Ceará</a> · <a href="${SITES.mun}?uf=ba#metodo">Bahia</a> · nota de cada cidade: <a href="https://quantocustaum.com/indice/?aba=cidades">Índice de transparência</a></div>`;
   el.querySelectorAll("[data-pend-uf]").forEach((b) => (b.onclick = () => { PEND_UF = b.dataset.pendUf; pendencias(T); }));
 }
 function cartao(id, x, T) {

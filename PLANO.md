@@ -50,7 +50,14 @@
    do site (o GitHub Pages não redireciona), então fazer só com o hub já apontando para o novo endereço.
 5. Próximo estado: escolher qual e estudar a fonte de dados do tribunal de contas dele.
 
-# Ideia anotada (17/11/2026): Índice de Transparência e Governança Pública
+# Índice de Transparência e Governança Pública (publicado em prévia, 17/11/2026: quantocustaum.com/indice/)
+
+Robô: robo/indice.py (roda junto com o mensageiro) gera dados/indice.json. Assembleias: notas e provas em
+robo/indice_assembleias.json (a pontualidade é calculada sozinha). Cidades do CE e da BA: 3 critérios automáticos
+(entrega no prazo 35, números que fecham 35, anos anteriores 30). Próximos passos: avaliar outras Assembleias,
+avaliar os portais de transparência municipais, guardar o histórico das notas.
+
+## Ideia original (17/11/2026)
 
 Uma nota (por exemplo de 0 a 100) para cada órgão — Assembleia Legislativa, prefeitura, câmara municipal, tribunal de
 contas como fonte — medindo **o quanto ele facilita ou dificulta que o cidadão veja como o dinheiro é gasto**.
