@@ -177,7 +177,7 @@ function painelUF() {
   const ano = ESTADO.dados.ano;
   const linha = (tag, cor, txt, v, cls = "") => `<tr><td>${tag ? `<span class="t" style="--c:${cor}">${tag}</span>` : ""}${txt}</td><td class="v ${cls}">${v}</td></tr>`;
   let rows = linha("DEP", "var(--dep)", `${nf(x.dep.n)} deputados federais`, curto(x.dep.custo)) +
-             linha("SEN", "var(--sen)", `${nf(x.sen.n)} senadores`, curto(x.sen.custo));
+             linha("SEN", "var(--sen)", x.sen.n > 3 ? `3 senadores <small class="sub">(${nf(x.sen.n)} passaram pelo cargo em ${ano}, contando suplentes que assumiram)</small>` : `${nf(x.sen.n)} senadores`, curto(x.sen.custo));
   if (x.mun) {
     const m = x.mun, completo = m.com_dados >= m.total;
     rows += linha("MUN", "var(--mun)", `${nf(m.total)} câmaras municipais (registrado)${completo ? "" : ` <small class="sub">(em coleta: ${nf(m.com_dados)} de ${nf(m.total)})</small>`}`, m.com_dados ? curto(m.custo) : "—");
