@@ -4,6 +4,7 @@
 const $ = (s) => document.querySelector(s);
 const nf = (v, d = 0) => (v || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
 const brl = (v, d = 0) => "R$ " + nf(v, d);
+const pl = (q, um, varios) => `${nf(q)} ${q === 1 ? um : varios}`;
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const curto = (v) => { const a = Math.abs(v || 0);
   if (a >= 1e12) return "R$ " + nf(v / 1e12, 2) + (a < 2e12 ? " trilhão" : " trilhões");
@@ -163,11 +164,12 @@ function dava(T) {
   $("#dava-pct-rot").textContent = nf(p * 100) + "%";
   $("#dava-txt").textContent = `${nf(p * 100)}% do que deputados e senadores gastaram em ${D.ano} com transporte, alimentação, hospedagem e divulgação do mandato (${curto(D.base)}) daria para:`;
   const it = Object.fromEntries(R.itens.map((x) => [x.id, x]));
+  // singular até "1,9" ("quase 1 hospital", "1,4 hospital"); plural a partir de 2
   const cards = [
-    ["escola", "escolas de tempo integral funcionando 1 ano"],
-    ["ubs", "UBS construídas e funcionando 1 ano"],
-    ["hospital", "hospital(is) de 100 leitos, construído(s) e funcionando 1 ano"],
-  ].filter(([id]) => it[id]).map(([id, rot]) => [n(exc / (it[id].construcao + it[id].ano_funcionando)), rot]);
+    ["escola", "escola de tempo integral funcionando 1 ano", "escolas de tempo integral funcionando 1 ano"],
+    ["ubs", "UBS construída e funcionando 1 ano", "UBS construídas e funcionando 1 ano"],
+    ["hospital", "hospital de 100 leitos, construído e funcionando 1 ano", "hospitais de 100 leitos, construídos e funcionando 1 ano"],
+  ].filter(([id]) => it[id]).map(([id, um, varios]) => { const q = exc / (it[id].construcao + it[id].ano_funcionando); return [n(q), q >= 2 ? varios : um]; });
   cards.push([nf(exc / R.bolsa_familia.por_familia_ano / 1000, 1) + " mil", "famílias a mais no Bolsa Família"]);
   $("#dava-itens").innerHTML = cards.map(([v, r]) => `<div class="dava-item"><b class="num">${v}</b><span>${r}</span></div>`).join("");
 }
@@ -251,9 +253,9 @@ async function iniciarDestaques() {
   if (jt.length) $("#top-notas-sub").textContent = `as maiores notas emitidas na última semana com dados publicados · ${jt.join(" · ")}`;
   const ms = D.multi_esfera || [];
   $("#multi").innerHTML = ms.length ? ms.slice(0, 5).map(([raiz, nome, c14, tot, dep, sen, mun, filiais]) => {
-    const q = [dep[0] ? `<span class="etq" style="--c:var(--dep)">DEP</span>${nf(dep[1])} deputado(s)` : "",
-               sen[0] ? `<span class="etq" style="--c:var(--sen)">SEN</span>${nf(sen[1])} senador(es)` : "",
-               mun[0] ? `<span class="etq" style="--c:var(--mun)">MUN</span>${nf(mun[1])} prefeitura(s)${mun[2] ? ` · ${nf(mun[2])} câmara(s)` : ""}` : ""].filter(Boolean).join(" · ");
+    const q = [dep[0] ? `<span class="etq" style="--c:var(--dep)">DEP</span>${pl(dep[1], "deputado", "deputados")}` : "",
+               sen[0] ? `<span class="etq" style="--c:var(--sen)">SEN</span>${pl(sen[1], "senador", "senadores")}` : "",
+               mun[0] ? `<span class="etq" style="--c:var(--mun)">MUN</span>${pl(mun[1], "prefeitura", "prefeituras")}${mun[2] ? ` · ${pl(mun[2], "câmara", "câmaras")}` : ""}` : ""].filter(Boolean).join(" · ");
     return `<li><span class="o"><button class="link" data-cnpj="${c14}">${esc(nome)}</button><span class="q">${q}${filiais > 1 ? ` · ${nf(filiais)} CNPJs (matriz e filiais)` : ""}</span></span><span class="v num">${curto(tot)}</span></li>`; }).join("")
     : `<li class="sub">Nenhuma empresa paga por mais de uma esfera em ${D.ano} até agora.</li>`;
 }
@@ -275,7 +277,7 @@ async function abrirEmpresa(c14) {
       <table><tbody>
       ${linha("DEP", "var(--dep)", "Cota dos deputados federais", dep, `${SITES.dep}?ano=${ano}#forn-${c14}`)}
       ${linha("SEN", "var(--sen)", "Cota dos senadores", sen, `${SITES.sen}?ano=${ano}#forn-${c14}`)}
-      ${linha("MUN", "var(--mun)", `Prefeituras do Ceará${nCid ? ` (${nf(nCid)} cidade(s))` : ""}`, mun, "")}
+      ${linha("MUN", "var(--mun)", `Prefeituras do Ceará${nCid ? ` (${pl(nCid, "cidade", "cidades")})` : ""}`, mun, "")}
       ${cidades.map(([sim, cid, v]) => `<tr><td style="padding-left:18px"><a href="${SITES.mun}#municipio/${sim}" style="margin:0">${esc(cid)}</a></td><td class="v">${brl(v, 2)}</td></tr>`).join("")}
       </tbody></table>
       <p class="sub">Valores de ${ano} até agora, como publicados. O cadastro da empresa na Receita Federal (sócios, abertura, situação) está na ficha do fornecedor nos sites de deputados e senadores.</p>`;
