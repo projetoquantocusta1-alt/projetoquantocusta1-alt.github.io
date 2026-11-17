@@ -170,7 +170,8 @@ async function iniciar() {
   $("#f-uf").innerHTML = `<option value="">Todos</option>` + ufs.map((u) => `<option value="${u}">${esc(NOME_UF[u] || u)}</option>`).join("");
   lerEndereco();
   desenhar();
-  $("#atual").textContent = `Notas recalculadas em ${new Date(S.d.gerado_em).toLocaleString("pt-BR")}. Fontes: robôs do Projeto Quanto Custa, ${Object.values(S.d.fontes).join(" e ")} e os portais das Assembleias.`;
+  const fontes = [...new Set(Object.values(S.d.fontes || {}))];
+  $("#atual").textContent = `Notas recalculadas em ${new Date(S.d.gerado_em).toLocaleString("pt-BR")}. Fontes: robôs do Projeto Quanto Custa, ${fontes.join(" e ")} e os portais das Assembleias.`;
   document.querySelectorAll(".ix-aba").forEach((b) => (b.onclick = () => { S.aba = b.dataset.aba; S.sel = null; S.limite = 50; gravarEndereco(); desenhar(); }));
   $("#f-uf").onchange = (e) => { S.uf = e.target.value; S.sel = null; S.limite = 50; gravarEndereco(); desenhar(); };
   $("#lista").addEventListener("click", (e) => escolher(e.target.closest("tbody tr")?.dataset.id));
