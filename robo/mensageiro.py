@@ -253,6 +253,8 @@ def municipios_siconfi(f: Fonte, ano: int, mes_atual: int, uf: str) -> dict:
     ritmo_mensal = ja = liq_ano = 0.0
     for m in res.get("municipios") or []:
         for a, ln in (m.get("anos") or {}).items():
+            if "alerta" in ix and ln[ix["alerta"]]:
+                continue   # câmara zerada ou fora do padrão no relatório: fora dos totais (o site explica)
             q = por_ano.setdefault(a, {"camara": 0.0, "n": 0, "n6": 0, "vereadores": 0, "per": []})
             cam = ln[ix["camara"]] or 0
             q["camara"] += cam
@@ -279,7 +281,7 @@ def municipios_siconfi(f: Fonte, ano: int, mes_atual: int, uf: str) -> dict:
     return {
         "uf": uf, "ano": ano, "cobertura": atual["n"], "total_municipios": total_mun, "anos_completos": completos,
         "registrado_ano": r2(ja), "liquidado_ano": r2(liq_ano), "total_ano": cont["ja"], "contador": cont,
-        "bimestre": per[0][0] if per else None, "faltas_ano": (meta.get("faltas") or {}).get(str(ano), []),
+        "bimestre": per[0][0] if per else None, "faltas_ano": (meta.get("faltas") or {}).get(str(ano), []), "alertas_ano": [x[0] for x in (meta.get("alertas_camara") or {}).get(str(ano), [])],
         "historico": hist, "desde": min((int(a) for a in por_ano), default=None),
         "vereadores": int(q_f["vereadores"]) if q_f else None,
         "por_vereador": {"ano": fechado, "valor": r2(q_f["camara"] * fatores.get(str(fechado), 1) / q_f["vereadores"])} if q_f and q_f["vereadores"] else None,
@@ -362,7 +364,7 @@ def estados(fd: Fonte, fs: Fonte, fm: Fonte, ano: int, fb: Fonte | None = None) 
         n = cust = pop = 0
         for m in rb.get("municipios") or []:
             ln = (m.get("anos") or {}).get(str(ano))
-            if ln:
+            if ln and not ("alerta" in ixb and ln[ixb["alerta"]]):
                 n += 1
                 cust += ln[ixb["camara"]] or 0
                 pop += ln[ixb["populacao"]] or 0
