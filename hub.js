@@ -24,7 +24,7 @@ const dataLocal = (iso) => { const [a, m, d] = iso.split("-").map(Number); retur
 const ESF = {
   deputados: { cor: "var(--dep)", k: "Câmara dos Deputados", nome: "Deputados federais", ir: "Ver deputados, notas e presença" },
   senadores: { cor: "var(--sen)", k: "Senado Federal", nome: "Senadores", ir: "Ver senadores e cada nota" },
-  municipios: { cor: "var(--mun)", k: "Prefeituras e câmaras", nome: "Prefeitos e vereadores", ir: "Ver minha cidade, nota a nota", tag: "Ceará" },
+  municipios: { cor: "var(--mun)", k: "Prefeituras e câmaras", nome: "Prefeitos e vereadores", ir: "Ver minha cidade, nota a nota", tag: "Ceará e Bahia" },
 };
 
 function valorAgora(c, t) {
