@@ -11,6 +11,9 @@
 6. **robots.txt de cada fonte é respeitado**, e os robôs consultam devagar (pausa entre consultas).
 7. Robôs gravam como `robo-quanto-custa`; não enviar mudanças enquanto o robô do mesmo repositório estiver salvando.
 8. Não mudar as cores do mapa.
+9. **Buscar sempre melhorar a experiência do usuário.** Os layouts devem continuar fluidos e estilosos como hoje:
+   limpos, com boa hierarquia, confortáveis no computador e no celular, sem poluir a página. Ao acrescentar algo,
+   preferir soluções que mantenham a página leve (ex.: mostrar o essencial e abrir o resto sob demanda).
 
 # Plano: um repositório por estado (decidido em 13/11/2026)
 
