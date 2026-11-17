@@ -6,7 +6,7 @@ const nf = (v, d = 0) => (v || 0).toLocaleString("pt-BR", { minimumFractionDigit
 const norm = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const COR = { boa: "#23966B", regular: "#D69A32", ruim: "#C84C4C", sem: "#B8C3CF" };
 const FX = { boa: "boa", regular: "regular", ruim: "ruim", sem: "sem nota" };
-const NOME_UF = { CE: "Ceará", BA: "Bahia" };
+let NOME_UF = { CE: "Ceará", BA: "Bahia" };
 const SITE = "https://quantocustaum.com/";
 const S = { d: null, aba: "assembleias", uf: "", busca: "", ordem: "pior", limite: 50, sel: null };
 
@@ -71,7 +71,7 @@ function listaMunicipios() {
       <select id="m-ordem" aria-label="Ordem"><option value="pior"${S.ordem === "pior" ? " selected" : ""}>Piores notas primeiro</option><option value="melhor"${S.ordem === "melhor" ? " selected" : ""}>Melhores notas primeiro</option><option value="nome"${S.ordem === "nome" ? " selected" : ""}>Ordem alfabética</option></select></div>
     ${ms.length ? `<table><thead><tr><th>#</th><th>Cidade</th><th>Nota</th><th class="ix-col-fx">Faixa</th></tr></thead><tbody>${linhas}</tbody></table>` : `<p class="ix-nota-rod">Nenhuma cidade com esse nome.</p>`}
     ${ms.length > S.limite ? `<button type="button" class="ix-mais" id="m-mais">Mostrar mais ${nf(Math.min(50, ms.length - S.limite))} (de ${nf(ms.length)})</button>` : ""}
-    <p class="ix-nota-rod">Nas cidades, a nota mede só a <b>prestação de contas</b> ao tribunal de contas (Ceará) ou ao Tesouro Nacional (Bahia). O portal de transparência de cada prefeitura ainda não é avaliado: veja "Limites desta prévia", abaixo.</p>`;
+    <p class="ix-nota-rod">Nas cidades, a nota mede só a <b>prestação de contas</b> ao tribunal de contas (Ceará) ou ao Tesouro Nacional (outros estados). O portal de transparência de cada prefeitura ainda não é avaliado: veja "Limites desta prévia", abaixo.</p>`;
 }
 
 function fichaMunicipio(k) {
@@ -99,12 +99,12 @@ function como() {
     "Um critério que ainda não deu para verificar fica fora da conta (aparece como \"fora\"), e a nota é calculada sobre os outros, na mesma proporção.",
     "Os pontos de cada critério vêm das dificuldades reais que o robô encontrou e estão escritos nas provas. Só a pontualidade é recalculada sozinha todo dia; os outros critérios são revistos quando a Assembleia muda o site.",
   ] : [
-    `A nota das cidades mede só a prestação de contas aos órgãos de controle: no Ceará, os balancetes e as notas de empenho enviados ao TCE-CE; na Bahia, o relatório bimestral (RREO) entregue ao Tesouro Nacional. É o que os robôs conseguem conferir em todas as cidades.`,
+    `A nota das cidades mede só a prestação de contas aos órgãos de controle: no Ceará, os balancetes e as notas de empenho enviados ao TCE-CE; nos outros estados, o relatório bimestral (RREO) entregue ao Tesouro Nacional. É o que os robôs conseguem conferir em todas as cidades.`,
     "O portal de transparência de cada prefeitura e de cada câmara ainda não é avaliado (são centenas de sites, cada um de um jeito). Por isso a maioria das cidades tem nota alta: entregar as contas é obrigação, e quase todas cumprem. Nota alta aqui não quer dizer que o portal da cidade é bom.",
-    `"Entrega no prazo" compara cada cidade com a maioria: no Ceará, com o mês que a maioria já tem no TCE-CE; na Bahia, com o bimestre que a maioria já entregou ao Tesouro. Assim a nota não cai só porque o tribunal ou o Tesouro ainda não publicou o período.`,
-    "Ceará e Bahia são avaliados por fontes diferentes (tribunal de contas e Tesouro Nacional). Compare cidades do mesmo estado.",
+    `"Entrega no prazo" compara cada cidade com a maioria: no Ceará, com o mês que a maioria já tem no TCE-CE; nos outros estados, com o bimestre que a maioria já entregou ao Tesouro. Assim a nota não cai só porque o tribunal ou o Tesouro ainda não publicou o período.`,
+    "O Ceará é avaliado pelo tribunal de contas (TCE-CE); os outros estados, pelo Tesouro Nacional. Como as fontes são diferentes, compare cidades do mesmo estado.",
     `No Ceará, só contam diferenças entre as notas de empenho e o balancete da câmara acima de 1% do gasto do ano; diferenças menores costumam ser arredondamento ou lançamento de fim de mês.`,
-    `Na Bahia, prefeitura e câmara são avaliadas juntas: o relatório ao Tesouro é um só, entregue pela prefeitura, e já traz o gasto da câmara.`,
+    `Fora do Ceará, prefeitura e câmara são avaliadas juntas: o relatório ao Tesouro é um só, entregue pela prefeitura, e já traz o gasto da câmara.`,
   ];
   return `<h2>Como a nota é feita</h2>
     <p>${ass ? "Oito critérios, que somam 100 pontos. Cada ponto perdido tem uma prova escrita na ficha. A Assembleia pode corrigir o problema, e a nota sobe na revisão seguinte." : `Três critérios, que somam 100 pontos, calculados sozinhos todo dia a partir dos dados de ${D.inicio} até hoje. A cidade pode entregar o que falta, e a nota sobe na atualização seguinte.`}</p>
@@ -141,6 +141,7 @@ function escolher(id) {
   if (matchMedia("(max-width: 860px)").matches) $("#ficha").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function lerEndereco() {
+  // NOME_UF já inclui os estados do índice
   const u = new URL(location);
   S.aba = u.searchParams.get("aba") === "cidades" ? "municipios" : "assembleias";
   const uf = (u.searchParams.get("uf") || "").toUpperCase();
@@ -163,6 +164,10 @@ async function iniciar() {
     $("#lista").innerHTML = `<p class="ix-carregando">Não foi possível carregar o índice agora. Tente de novo em alguns minutos.</p>`;
     return;
   }
+  NOME_UF = { ...NOME_UF, ...(S.d.nomes_uf || {}) };
+  // o filtro de estado mostra só os estados que já têm cidades no índice
+  const ufs = [...new Set(S.d.municipios.map((m) => m.uf))].sort((a, b) => (NOME_UF[a] || a).localeCompare(NOME_UF[b] || b, "pt-BR"));
+  $("#f-uf").innerHTML = `<option value="">Todos</option>` + ufs.map((u) => `<option value="${u}">${esc(NOME_UF[u] || u)}</option>`).join("");
   lerEndereco();
   desenhar();
   $("#atual").textContent = `Notas recalculadas em ${new Date(S.d.gerado_em).toLocaleString("pt-BR")}. Fontes: robôs do Projeto Quanto Custa, ${Object.values(S.d.fontes).join(" e ")} e os portais das Assembleias.`;

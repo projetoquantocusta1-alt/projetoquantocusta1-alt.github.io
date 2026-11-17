@@ -25,8 +25,15 @@ const dataLocal = (iso) => { const [a, m, d] = iso.split("-").map(Number); retur
 const ESF = {
   deputados: { cor: "var(--dep)", k: "Câmara dos Deputados", nome: "Deputados federais", ir: "Ver deputados, notas e presença" },
   senadores: { cor: "var(--sen)", k: "Senado Federal", nome: "Senadores", ir: "Ver senadores e cada nota" },
-  municipios: { cor: "var(--mun)", k: "Prefeituras e câmaras", nome: "Prefeitos e vereadores", ir: "Ver minha cidade, nota a nota", tag: "Ceará e Bahia" },
+  municipios: { cor: "var(--mun)", k: "Prefeituras e câmaras", nome: "Prefeitos e vereadores", ir: "Ver minha cidade, nota a nota" },
 };
+// estados das prefeituras: o Ceará vem do TCE-CE; os outros, do Tesouro Nacional (SICONFI), cada um no seu repositório
+const UF_NOME = { CE: "Ceará", BA: "Bahia", PE: "Pernambuco", PB: "Paraíba", RN: "Rio Grande do Norte" };
+const UF_DO = { CE: "do Ceará", BA: "da Bahia", PE: "de Pernambuco", PB: "da Paraíba", RN: "do Rio Grande do Norte" };
+const UF_EM = { CE: "no Ceará", BA: "na Bahia", PE: "em Pernambuco", PB: "na Paraíba", RN: "no Rio Grande do Norte" };
+const eLista = (l) => (l.length > 1 ? l.slice(0, -1).join(", ") + " e " + l[l.length - 1] : l[0] || "");
+// esferas municipais pelo SICONFI presentes nos totais (municipios_ba, municipios_pe...)
+const sicEsferas = (T) => Object.keys(T.esferas || {}).filter((k) => k.startsWith("municipios_")).map((k) => T.esferas[k]);
 
 function valorAgora(c, t) {
   if (!c) return 0;
@@ -47,22 +54,21 @@ function comparar(T) {
 function contador(T) {
   // principal: Congresso Nacional; câmaras do Ceará num contador à parte (não misturar Brasil com um estado)
   const cs = ["deputados", "senadores"].map((k) => (T.contador || {})[k]).filter(Boolean);
-  const cms = ["municipios", "municipios_ba"].map((k) => (T.contador || {})[k]).filter(Boolean);
+  const cms = Object.keys(T.contador || {}).filter((k) => k.startsWith("municipios")).map((k) => T.contador[k]).filter(Boolean);
   const cm = cms.length ? cms : null;
   document.querySelectorAll(".ano").forEach((e) => (e.textContent = T.ano));
   const porSeg = cs.reduce((s, c) => s + (c.por_seg || 0), 0);
   $("#cont-rot .ano").textContent = T.ano;
   $("#cont-ritmo").innerHTML = porSeg ? `+ <b>${brl(porSeg, 2)}</b> por segundo · <b>${curto(porSeg * 86400)}</b> por dia` : "";
-  const mun = T.esferas.municipios;
+  const mun = T.esferas.municipios, sics = sicEsferas(T);
   $("#cont-nota").textContent = "Valor estimado em tempo real: soma o que já foi registrado e avança no ritmo de gasto do ano.";
   if (cm && mun) {
     $("#cont-mun").hidden = false;
     $("#cont-mun-nota").textContent = `Câmaras inteiras (vereadores, servidores e despesas). No Ceará, os órgãos "Gabinete do Prefeito/Vice" ficam fora: registraram ${curto(mun.gabinetes_registrado_ano || 0)} em ${T.ano}, mas incluem comunicação, cerimonial, procuradoria e programas.` +
       (mun.pago_ano && mun.registrado_ano > mun.pago_ano ? ` O contador avança no ritmo do que já foi pago (${curto(mun.pago_ano)}), não do empenhado (${curto(mun.registrado_ano)}): contratos e folha são empenhados de uma vez no começo do ano e pagos aos poucos.` : "") +
       (mun.cobertura < mun.total_municipios ? ` Ainda em coleta: ${mun.cobertura} de ${mun.total_municipios} cidades com dados de ${T.ano}.` : "") +
-      (T.esferas.municipios_ba ? ` Bahia (${nf(T.esferas.municipios_ba.cobertura)} de ${nf(T.esferas.municipios_ba.total_municipios)} cidades): dados do Tesouro Nacional, a cada dois meses; o contador avança no ritmo do liquidado (o relatório do Tesouro não traz o pago) e não inclui gabinetes.` : "");
-    const b = T.esferas.municipios_ba;
-    if (b) $("#cont-mun-rot").innerHTML = `E com as <b>câmaras municipais do Ceará e da Bahia</b> (${nf(mun.total_municipios + b.total_municipios)} cidades) em <span class="ano">${T.ano}</span>`;
+      (sics.length ? ` ${eLista(sics.map((b) => `${UF_NOME[b.uf] || b.uf} (${nf(b.cobertura)} de ${nf(b.total_municipios)} cidades)`))}: dados do Tesouro Nacional, a cada dois meses; o contador avança no ritmo do liquidado (o relatório do Tesouro não traz o pago) e não inclui gabinetes.` : "");
+    if (sics.length) $("#cont-mun-rot").innerHTML = `E com as <b>câmaras municipais ${eLista([UF_DO.CE, ...sics.map((b) => UF_DO[b.uf] || b.uf)])}</b> (${nf(mun.total_municipios + sics.reduce((s, b) => s + b.total_municipios, 0))} cidades) em <span class="ano">${T.ano}</span>`;
   }
   const el = $("#contador");
   const ext = $("#contador-ext");
@@ -80,9 +86,10 @@ function barras(hist) {
 }
 
 // soma, ano a ano, dois históricos [ano, valor, completo] (só os anos que os dois têm)
-function somaHist(a, b) {
-  const mb = new Map((b || []).map((h) => [h[0], h]));
-  return (a || []).filter((h) => mb.has(h[0])).map(([ano, v, c]) => [ano, v + mb.get(ano)[1], c && mb.get(ano)[2]]);
+// soma as séries por ano; só ficam os anos presentes em todas
+function somaHist(a, ...outras) {
+  return outras.reduce((acc, b) => { const mb = new Map((b || []).map((h) => [h[0], h]));
+    return acc.filter((h) => mb.has(h[0])).map(([ano, v, c]) => [ano, v + mb.get(ano)[1], c && mb.get(ano)[2]]); }, a || []);
 }
 // "Quem não prestou contas": prefeituras e câmaras que não enviaram as contas ou cujos números não fecham
 const GRUPOS_PEND = [["nao_enviou", "Não enviaram o relatório ou o balancete", "var(--pend-verm, #C84C4C)", "v"],
@@ -94,7 +101,7 @@ function pendencias(T) {
   if (!P?.itens?.length) { el.hidden = true; return; }
   el.hidden = false;
   const n = (uf) => P.itens.filter((i) => !uf || i.uf === uf).reduce((s, i) => s + i.cidades.length, 0);
-  const ufs = [...new Set(P.itens.map((i) => i.uf))], NOME = { CE: "Ceará", BA: "Bahia" };
+  const ufs = [...new Set(P.itens.map((i) => i.uf))], NOME = { ...UF_NOME, ...(P.nomes || {}) };
   const abas = [["", "Todos"], ...ufs.map((u) => [u, NOME[u] || u])].map(([u, r]) => `<button type="button" class="aba${PEND_UF === u ? " on" : ""}" data-pend-uf="${u}">${r} (${nf(n(u))})</button>`).join("");
   const grupos = GRUPOS_PEND.map(([g, tit, cor, cls]) => {
     const its = P.itens.filter((i) => i.grupo === g && (!PEND_UF || i.uf === PEND_UF));
@@ -104,13 +111,13 @@ function pendencias(T) {
   }).join("");
   el.innerHTML = `<div class="p-cab"><h3>Quem não prestou contas em ${P.ano}</h3><p>Cidades que não enviaram as contas ao tribunal de contas ou ao Tesouro, ou cujos números não fecham. A obrigação de informar é de cada prefeitura e câmara.</p></div>
     <div class="abas">${abas}</div><div class="grupos">${grupos}</div>
-    <div class="p-rod">Atualizado todo dia pelos robôs · fontes: TCE-CE e Tesouro Nacional (SICONFI) · lista completa, ano a ano: <a href="${SITES.mun}#camaras">Ceará</a> · <a href="${SITES.mun}?uf=ba#metodo">Bahia</a> · nota de cada cidade: <a href="https://quantocustaum.com/indice/?aba=cidades">Índice de Governança</a></div>`;
+    <div class="p-rod">Atualizado todo dia pelos robôs · fontes: TCE-CE e Tesouro Nacional (SICONFI) · lista completa, ano a ano: ${ufs.map((u) => `<a href="${SITES.mun}${u === "CE" ? "#camaras" : `?uf=${u.toLowerCase()}#metodo`}">${NOME[u] || u}</a>`).join(" · ")} · nota de cada cidade: <a href="https://quantocustaum.com/indice/?aba=cidades">Índice de Governança</a></div>`;
   el.querySelectorAll("[data-pend-uf]").forEach((b) => (b.onclick = () => { PEND_UF = b.dataset.pendUf; pendencias(T); }));
 }
 function cartao(id, x, T) {
   const e = ESF[id];
   if (!x) return `<article class="cartao" style="--c:${e.cor}"><div class="k">${e.k}</div><h3>${e.nome}</h3><p class="sub">Dados indisponíveis no momento.</p></article>`;
-  let quem, inds, aviso = "", avisoDiv = "", partes = "", avisoBa = "", valorRot = `em ${x.ano}`;
+  let quem, inds, aviso = "", avisoDiv = "", partes = "", avisoBa = "", valorRot = `em ${x.ano}`, tag = e.tag;
   if (id === "deputados") {
     quem = `${nf(x.cadeiras)} deputados · desde ${x.desde}`;
     inds = [[`por deputado, por ano (${x.por_cadeira?.ano ?? "—"})`, x.por_cadeira ? curto(x.por_cadeira.valor) : "—"],
@@ -120,15 +127,18 @@ function cartao(id, x, T) {
     inds = [[`cota (CEAPS) em ${x.ano}`, curto(x.cota_ano)], ["maior cota do ano", x.maior_cota ? `${curto(x.maior_cota.valor)}` : "—"]];
     if (x.maior_cota) inds[1][0] = `maior cota do ano · ${esc(x.maior_cota.nome)}`;
   } else {
-    const comp = x.anos_completos || [], b = T.esferas.municipios_ba;
-    const nMun = x.total_municipios + (b?.total_municipios || 0), nVer = (x.vereadores || 0) + (b?.vereadores || 0);
-    quem = `${nf(nMun)} municípios${b ? ` (Ceará ${nf(x.total_municipios)} e Bahia ${nf(b.total_municipios)})` : ""}${nVer ? ` · ${nf(nVer)} vereadores` : ""}`;
+    const comp = x.anos_completos || [], sics = sicEsferas(T), N = (b) => UF_NOME[b.uf] || b.uf;
+    const nMun = x.total_municipios + sics.reduce((s, b) => s + (b.total_municipios || 0), 0), nVer = (x.vereadores || 0) + sics.reduce((s, b) => s + (b.vereadores || 0), 0);
+    quem = `${nf(nMun)} municípios${sics.length ? ` (${eLista([`Ceará ${nf(x.total_municipios)}`, ...sics.map((b) => `${N(b)} ${nf(b.total_municipios)}`)])})` : ""}${nVer ? ` · ${nf(nVer)} vereadores` : ""}`;
+    tag = eLista(["Ceará", ...sics.map(N)]);
     valorRot = `câmaras municipais, registrado em ${x.ano}`;
     inds = [[`por vereador, por ano no Ceará (${x.por_vereador?.ano ?? "—"}, valores de hoje) · câmara inteira ÷ vereadores`, x.por_vereador ? curto(x.por_vereador.valor) : "—"],
-            ...(b?.por_vereador ? [[`por vereador, por ano na Bahia (${b.por_vereador.ano}, valores de hoje)`, curto(b.por_vereador.valor)]] : []),
-            [`gabinetes do prefeito e do vice no Ceará em ${x.ano} (órgão inteiro, fora do total; a Bahia não tem esse dado)`, curto(x.gabinetes_registrado_ano || 0)]];
-    if (b) partes = `<p class="partes"><span><b>Ceará</b> ${curto(x.registrado_ano)} · ${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades</span><span><b>Bahia</b> ${curto(b.registrado_ano)} · ${nf(b.cobertura)} de ${nf(b.total_municipios)} cidades${b.bimestre && b.bimestre < 6 ? `, até ${["", "fev", "abr", "jun", "ago", "out", "dez"][b.bimestre]}` : ""}</span></p>`;
-    if (b) avisoBa = `<p class="aviso">Bahia: dados do Tesouro Nacional (SICONFI), porque o tribunal de contas dos municípios da Bahia não responde ao nosso robô; sem nota a nota nem gabinetes.${b.bimestre && b.bimestre < 6 ? ` O valor de ${b.ano} é o empenhado até ${["", "fevereiro", "abril", "junho", "agosto", "outubro"][b.bimestre]}, que já fica perto do ano inteiro: as câmaras empenham a folha e os contratos do ano logo no começo.` : ""}</p>`;
+            ...sics.filter((b) => b.por_vereador).map((b) => [`por vereador, por ano ${UF_EM[b.uf] || "em " + b.uf} (${b.por_vereador.ano}, valores de hoje)`, curto(b.por_vereador.valor)]),
+            [`gabinetes do prefeito e do vice no Ceará em ${x.ano} (órgão inteiro, fora do total; ${sics.length > 1 ? "os outros estados não têm" : sics.length ? `${UF_NOME[sics[0].uf]} não tem` : ""} esse dado)`, curto(x.gabinetes_registrado_ano || 0)]];
+    const ate = (b) => b.bimestre && b.bimestre < 6 ? `, até ${["", "fev", "abr", "jun", "ago", "out", "dez"][b.bimestre]}` : "";
+    if (sics.length) partes = `<p class="partes"><span><b>Ceará</b> ${curto(x.registrado_ano)} · ${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades</span>${sics.map((b) => `<span><b>${N(b)}</b> ${curto(b.registrado_ano)} · ${nf(b.cobertura)} de ${nf(b.total_municipios)} cidades${ate(b)}</span>`).join("")}</p>`;
+    const bm = sics.map((b) => b.bimestre).filter((v) => v && v < 6);
+    if (sics.length) avisoBa = `<p class="aviso">${eLista(sics.map(N))}: dados do Tesouro Nacional (SICONFI), sem nota a nota nem gabinetes (só ${sics.length > 1 ? "os tribunais de contas desses estados têm, e o robô ainda não os lê" : "o tribunal de contas desse estado tem, e o robô ainda não o lê"}).${bm.length ? ` O valor de ${x.ano} é o empenhado até ${["", "fevereiro", "abril", "junho", "agosto", "outubro"][Math.min(...bm)]}${bm.length > 1 ? " ou depois" : ""}, que já fica perto do ano inteiro: as câmaras empenham a folha e os contratos do ano logo no começo.` : ""}</p>`;
     const dv = x.divergencias || {}, tit = (n) => String(n || "").toLowerCase().replace(/(^|\s)(\p{L})/gu, (m) => m.toUpperCase());
     const sb = (dv.sem_balancete || []).map(([n]) => tit(n)), df = (dv.diferenca || []).map(([n]) => tit(n));
     const P = T.pendencias;
@@ -140,11 +150,11 @@ function cartao(id, x, T) {
       : comp.length ? `Série completa: ${comp[0]}–${comp[comp.length - 1]}.` : ""}</p>`;
   }
   // municípios: o valor JÁ REGISTRADO (o mesmo do mapa); o estimado fica só no contador
-  const bMun = id === "municipios" ? T.esferas.municipios_ba : null;
-  const valor = id === "municipios" ? (x.cobertura ? curto((x.registrado_ano ?? x.total_ano) + (bMun?.registrado_ano || 0)) : "—") : curto(x.total_ano);
-  const hist = bMun ? somaHist(x.historico, bMun.historico) : x.historico;
+  const sicM = id === "municipios" ? sicEsferas(T) : [];
+  const valor = id === "municipios" ? (x.cobertura ? curto((x.registrado_ano ?? x.total_ano) + sicM.reduce((s, b) => s + (b.registrado_ano || 0), 0)) : "—") : curto(x.total_ano);
+  const hist = sicM.length ? somaHist(x.historico, ...sicM.map((b) => b.historico)) : x.historico;
   return `<article class="cartao" style="--c:${e.cor}">
-    <div class="k"><span>${e.k}</span>${e.tag ? `<span class="tag">${e.tag}</span>` : ""}</div>
+    <div class="k"><span>${e.k}</span>${tag ? `<span class="tag">${tag}</span>` : ""}</div>
     <h3>${e.nome}</h3><p class="quem">${quem}</p>
     <div class="valor"><b class="num">${valor}</b><span>${valorRot}${x.meses && x.meses < 12 ? " (até agora)" : ""}</span></div>
     ${partes}${barras(hist)}
@@ -213,12 +223,12 @@ function painelUF() {
     if (m.fonte === "SICONFI") rows += linha("", "", `<span class="sub">Dados do Tesouro Nacional (SICONFI): sem gabinetes nem emendas para este estado.</span>`, "");
     if (x.por_habitante) rows += linha("", "", "Por habitante, no ano", brl(x.por_habitante, 2), "vermelho");
   } else {
-    rows += linha("", "", `<span class="sub">Prefeitos e vereadores deste estado ainda não estão no projeto (por enquanto, Ceará e Bahia).</span>`, "");
+    rows += linha("", "", `<span class="sub">Prefeitos e vereadores deste estado ainda não estão no projeto (por enquanto, ${eLista(Object.entries(ESTADO.dados.ufs).filter(([, v]) => v.mun).map(([u]) => UF_NOME[u] || u))}).</span>`, "");
   }
   rows += linha("", "", "Custo médio por político federal, por mês", x.por_mes ? brl(x.por_mes) : "—");
   $("#uf-painel").innerHTML = `<div class="uf-cab"><small>Estado selecionado · ${ano} até agora</small><h3>${esc(M.ufs[u][0])}</h3></div>
     <table class="uf-linhas"><tbody>${rows}</tbody></table>
-    <div class="uf-links"><a href="${SITES.dep}?uf=${u}&pag=deputados">Deputados de ${u} →</a><a class="sec2" href="${SITES.sen}?uf=${u}#senadores">Senadores de ${u} →</a>${x.mun ? `<a class="sec2" href="${SITES.mun}${u === "CE" ? "" : "?uf=" + u.toLowerCase()}">Cidades ${u === "BA" ? "da Bahia" : "do Ceará"} →</a>` : ""}</div>`;
+    <div class="uf-links"><a href="${SITES.dep}?uf=${u}&pag=deputados">Deputados de ${u} →</a><a class="sec2" href="${SITES.sen}?uf=${u}#senadores">Senadores de ${u} →</a>${x.mun ? `<a class="sec2" href="${SITES.mun}${u === "CE" ? "" : "?uf=" + u.toLowerCase()}">Cidades ${UF_DO[u] || u} →</a>` : ""}</div>`;
 }
 
 async function iniciarEstados() {
@@ -346,7 +356,7 @@ async function iniciar() {
   $("#cartoes").innerHTML = ["deputados", "senadores", "municipios"].map((k) => cartao(k, T.esferas[k], T)).join("");
   pendencias(T);
   dava(T);
-  const at = Object.entries(T.esferas).map(([k, v]) => v.atualizado_em ? `${ESF[k]?.nome || (k === "municipios_ba" ? "Prefeituras da Bahia" : k)}: ${new Date(v.atualizado_em).toLocaleString("pt-BR")}` : "").filter(Boolean);
+  const at = Object.entries(T.esferas).map(([k, v]) => v.atualizado_em ? `${ESF[k]?.nome || (k.startsWith("municipios_") ? `Prefeituras ${UF_DO[v.uf] || v.uf}` : k)}: ${new Date(v.atualizado_em).toLocaleString("pt-BR")}` : "").filter(Boolean);
   $("#atualizacao").textContent = `Totais reunidos em ${new Date(T.gerado_em).toLocaleString("pt-BR")}. Última atualização de cada site — ${at.join(" · ")}.`;
 }
 

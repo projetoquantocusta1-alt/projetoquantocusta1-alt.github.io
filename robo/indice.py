@@ -3,7 +3,7 @@
 Gera dados/indice.json com uma nota de 0 a 100 para:
   - Assembleias Legislativas avaliadas (robo/indice_assembleias.json, com as provas; a pontualidade é calculada
     aqui, a partir dos meses que a Assembleia já publicou);
-  - prefeituras e câmaras do Ceará (TCE-CE) e da Bahia (Tesouro Nacional, SICONFI), calculadas sozinhas a partir
+  - prefeituras e câmaras do Ceará (TCE-CE) e dos estados pelo Tesouro Nacional (SICONFI), calculadas sozinhas a partir
     do que os robôs encontraram: entrega no prazo, números que fecham e anos anteriores completos.
 
 Uso:
@@ -20,7 +20,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from mensageiro import Fonte  # noqa: E402
+from mensageiro import SICONFI, Fonte  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parents[1]
 SAIDA = RAIZ / "dados" / "indice.json"
@@ -39,7 +39,7 @@ PESOS_ASSEMBLEIA = [
 ]
 PESOS_MUNICIPIO = [
     ("pontualidade", "Entrega no prazo", 35, "O ano atual já foi entregue ao tribunal de contas ou ao Tesouro até o período que a maioria das cidades já entregou?"),
-    ("consistencia", "Números que fecham", 35, "Em cada ano, os números da câmara conferem? (notas x balancete no Ceará; câmara zerada ou fora do padrão na Bahia)"),
+    ("consistencia", "Números que fecham", 35, "Em cada ano, os números da câmara conferem? (notas x balancete no Ceará; câmara zerada ou fora do padrão nos estados pelo Tesouro)"),
     ("historico", "Anos anteriores", 30, f"De {INICIO} até o ano passado, quantos anos foram entregues completos?"),
 ]
 MESES = ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
@@ -175,9 +175,13 @@ def municipios_ce(fm: Fonte, ano: int) -> list[dict]:
     return out
 
 
-def municipios_ba(fb: Fonte, ano: int) -> list[dict]:
+def municipios_siconfi(fb: Fonte, ano: int, uf: str) -> list[dict]:
     r, meta = fb.get("resumo.json") or {}, fb.get("meta.json") or {}
     if not r.get("municipios"):
+        return []
+    # primeira coleta ainda em andamento: o estado entra quando o ano passado tiver ao menos 90% das cidades
+    total = meta.get("total_municipios") or len(r["municipios"])
+    if (meta.get("cobertura") or {}).get(str(ano - 1), 0) < 0.9 * total:
         return []
     ix = {k: i for i, k in enumerate(r["campos"])}
     v = lambda l, k: l[ix[k]] if k in ix and ix[k] < len(l) else None  # noqa: E731
@@ -219,7 +223,7 @@ def municipios_ba(fb: Fonte, ano: int) -> list[dict]:
             provas.append(["bom", f"Todos os anos de {INICIO} a {ano - 1} entregues completos ao Tesouro."])
         pts = [round(p1, 1), round(p2, 1), round(p3, 1)]
         nota = nota_municipio(pts)
-        out.append({"uf": "BA", "nome": m["nome"], "id": m.get("ibge"), "nota": nota, "faixa": faixa(nota),
+        out.append({"uf": uf, "nome": m["nome"], "id": m.get("ibge"), "nota": nota, "faixa": faixa(nota),
                     "pts": pts, "provas": provas})
     return out
 
@@ -239,15 +243,17 @@ def montar(local: Path | None = None, hoje: date | None = None) -> dict:
     ano = hoje.year
     fe = Fonte("quanto-custa-deputados-estaduais", local)
     fm = Fonte("quanto-custa-municipios", local)
-    fb = Fonte("quanto-custa-municipios-ba", local)
-    ms = municipios_ce(fm, ano) + municipios_ba(fb, ano)
+    ms = municipios_ce(fm, ano)
+    for u in SICONFI:
+        ms += municipios_siconfi(Fonte(f"quanto-custa-municipios-{u.lower()}", local), ano, u)
     ms.sort(key=lambda m: (m["nota"], m["nome"]))
     return {
         "gerado_em": datetime.now(timezone.utc).isoformat(timespec="minutes"), "ano": ano, "inicio": INICIO,
         "pesos": {"assembleias": [list(p) for p in PESOS_ASSEMBLEIA], "municipios": [list(p) for p in PESOS_MUNICIPIO]},
         "assembleias": assembleias(fe, hoje),
         "municipios": ms, "resumo_municipios": resumo(ms),
-        "fontes": {"CE": "Tribunal de Contas do Estado do Ceará (TCE-CE)", "BA": "Tesouro Nacional (SICONFI), RREO"},
+        "fontes": {"CE": "Tribunal de Contas do Estado do Ceará (TCE-CE)", **{u: "Tesouro Nacional (SICONFI), RREO" for u in SICONFI}},
+        "nomes_uf": {"CE": "Ceará", **SICONFI},
     }
 
 
