@@ -280,7 +280,9 @@ def municipios_siconfi(f: Fonte, ano: int, mes_atual: int, uf: str) -> dict:
                 liq_ano += liq
     completos = sorted(int(a) for a, q in por_ano.items() if q["n6"] >= total_mun)
     # primeira coleta ainda em andamento: o ano passado precisa ter ao menos 90% das cidades
-    if (por_ano.get(str(ano - 1)) or {}).get("n", 0) < 0.9 * total_mun:
+    # (usa a cobertura do robô do estado, a mesma do Índice de Governança)
+    cob_ant = (meta.get("cobertura") or {}).get(str(ano - 1), 0)
+    if cob_ant < 0.9 * total_mun:
         raise RuntimeError("primeira coleta em andamento")
     atual = por_ano.get(str(ano), {"camara": 0.0, "n": 0, "per": []})
     md = max(0, mes_atual - 1)
