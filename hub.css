@@ -242,5 +242,7 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
 .pend .st.v { background: #FDF0EF; color: #8a2a22; border: 1px solid #E3A6A0; }
 .pend .st.a { background: #FFF6E5; color: #6b4a12; border: 1px solid #E8C27A; }
 .pend .st.c { background: #F1F4F7; color: #5B7189; border: 1px solid var(--linha); }
+.pend .pend-mais { display: inline-block; margin: 2px 0 4px; border: 1px solid var(--linha); background: transparent; border-radius: 999px; padding: 4px 13px; font: 600 13px "IBM Plex Sans", system-ui, sans-serif; color: #2463A6; cursor: pointer; }
+.pend .pend-mais:hover { background: #EEF4FB; }
 .pend .p-rod { border-top: 1px solid var(--linha); padding: 11px 20px; color: var(--muted, #5B7189); font-size: 12.5px; }
 .pend .p-rod a { font-weight: 700; }

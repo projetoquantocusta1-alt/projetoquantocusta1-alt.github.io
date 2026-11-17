@@ -95,6 +95,7 @@ function somaHist(a, ...outras) {
 const GRUPOS_PEND = [["nao_enviou", "Não enviaram o relatório ou o balancete", "var(--pend-verm, #C84C4C)", "v"],
   ["nao_fecha", "Os números não fecham", "#D69A32", "a"], ["anterior", "Anos anteriores", "#5B7189", "c"]];
 let PEND_UF = "";
+const PEND_ABERTO = new Set();   // grupos da lista "Quem não prestou contas" abertos com "mostrar mais"
 function pendencias(T) {
   const P = T.pendencias, el = $("#pendencias");
   if (!el) return;
@@ -103,16 +104,20 @@ function pendencias(T) {
   const n = (uf) => P.itens.filter((i) => !uf || i.uf === uf).reduce((s, i) => s + i.cidades.length, 0);
   const ufs = [...new Set(P.itens.map((i) => i.uf))], NOME = { ...UF_NOME, ...(P.nomes || {}) };
   const abas = [["", "Todos"], ...ufs.map((u) => [u, NOME[u] || u])].map(([u, r]) => `<button type="button" class="aba${PEND_UF === u ? " on" : ""}" data-pend-uf="${u}">${r} (${nf(n(u))})</button>`).join("");
+  const LIM = 5;   // por grupo, mostra as primeiras; o resto abre no "mostrar mais"
   const grupos = GRUPOS_PEND.map(([g, tit, cor, cls]) => {
     const its = P.itens.filter((i) => i.grupo === g && (!PEND_UF || i.uf === PEND_UF));
     if (!its.length) return "";
+    const aberto = PEND_ABERTO.has(g), vis = aberto ? its : its.slice(0, LIM), resto = its.length - vis.length;
     return `<div class="grupo"><div class="g-tit"><span class="bola" style="background:${cor}"></span>${tit}<span class="q num">${nf(its.reduce((s, i) => s + i.cidades.length, 0))}</span></div><ul>${
-      its.map((i) => `<li><span class="uf">${esc(i.uf)}</span><span class="cid">${esc(i.cidades.join(" · "))}<small>${esc(i.desc)}</small></span><span class="st ${cls}">${esc(i.etq)}</span></li>`).join("")}</ul></div>`;
+      vis.map((i) => `<li><span class="uf">${esc(i.uf)}</span><span class="cid">${esc(i.cidades.join(" · "))}<small>${esc(i.desc)}</small></span><span class="st ${cls}">${esc(i.etq)}</span></li>`).join("")}</ul>${
+      resto > 0 ? `<button type="button" class="pend-mais" data-pend-mais="${g}">mostrar mais ${nf(resto)} ↓</button>` : ""}</div>`;
   }).join("");
   el.innerHTML = `<div class="p-cab"><h3>Quem não prestou contas em ${P.ano}</h3><p>Cidades que não enviaram as contas ao tribunal de contas ou ao Tesouro, ou cujos números não fecham. A obrigação de informar é de cada prefeitura e câmara.</p></div>
     <div class="abas">${abas}</div><div class="grupos">${grupos}</div>
     <div class="p-rod">Atualizado todo dia pelos robôs · fontes: TCE-CE e Tesouro Nacional (SICONFI) · lista completa, ano a ano: ${ufs.map((u) => `<a href="${SITES.mun}${u === "CE" ? "#camaras" : `?uf=${u.toLowerCase()}#metodo`}">${NOME[u] || u}</a>`).join(" · ")} · nota de cada cidade: <a href="https://quantocustaum.com/indice/?aba=cidades">Índice de Governança</a></div>`;
-  el.querySelectorAll("[data-pend-uf]").forEach((b) => (b.onclick = () => { PEND_UF = b.dataset.pendUf; pendencias(T); }));
+  el.querySelectorAll("[data-pend-uf]").forEach((b) => (b.onclick = () => { PEND_UF = b.dataset.pendUf; PEND_ABERTO.clear(); pendencias(T); }));
+  el.querySelectorAll("[data-pend-mais]").forEach((b) => (b.onclick = () => { PEND_ABERTO.add(b.dataset.pendMais); pendencias(T); }));
 }
 function cartao(id, x, T) {
   const e = ESF[id];
