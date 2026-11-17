@@ -108,7 +108,10 @@ function cartao(id, x, T) {
     const dv = x.divergencias || {}, tit = (n) => String(n || "").toLowerCase().replace(/(^|\s)(\p{L})/gu, (m) => m.toUpperCase());
     const sb = (dv.sem_balancete || []).map(([n]) => tit(n)), df = (dv.diferenca || []).map(([n]) => tit(n));
     if (sb.length || df.length) avisoDiv = `<p class="aviso diverg">${sb.length ? `<b>Sem balancete enviado ao TCE-CE em ${x.ano}:</b> câmara${sb.length > 1 ? "s" : ""} de ${esc(sb.join(", "))} (valor pela soma das notas de empenho). ` : ""}${df.length ? `<b>Notas e balancete não batem:</b> ${esc(df.join(", "))}. ` : ""}<a href="${x.url}#camaras">ver detalhes</a></p>`;
-    if (x.em_coleta) aviso = `<p class="aviso">Em coleta: ${x.cobertura < x.total_municipios ? `${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades têm dados de ${x.ano}. ` : ""}${comp.length ? `Série completa: ${comp[0]}–${comp[comp.length - 1]}; ` : ""}os anos desde 2017 chegam nos próximos dias.</p>`;
+    const fal = Object.entries(x.faltam || {}).filter(([, l]) => l.length);
+    if (x.em_coleta) aviso = `<p class="aviso">${x.cobertura < x.total_municipios ? `Ceará: ${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades têm dados de ${x.ano}. ` : ""}${fal.length
+      ? `Ceará, sem dados no TCE-CE: ${fal.map(([a, l]) => `${a} (${esc(l.map(tit).join(", "))})`).join("; ")}; o robô procura de novo todos os dias. ${comp.length ? `Por isso a série com todas as cidades começa em ${comp[0]}.` : ""}`
+      : comp.length ? `Série completa: ${comp[0]}–${comp[comp.length - 1]}.` : ""}</p>`;
   }
   // municípios: o valor JÁ REGISTRADO (o mesmo do mapa); o estimado fica só no contador
   const bMun = id === "municipios" ? T.esferas.municipios_ba : null;

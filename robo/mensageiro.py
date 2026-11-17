@@ -223,6 +223,9 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
     return {
         "ano": ano, "em_coleta": atual["n"] < total_mun or not serie_completa,
         "cobertura": atual["n"], "total_municipios": total_mun, "anos_completos": completos,
+        # anos incompletos (antes do atual): quais municípios faltam, para o aviso dizer quem e por quê
+        "faltam": {a: sorted(m.get("nome") for m in res.get("municipios") or [] if a not in (m.get("anos") or {}))
+                   for a, q in por_ano.items() if q["n"] < total_mun and int(a) < ano},
         "total_ano": r2(ja_est), "registrado_ano": r2(ja), "pago_ano": r2(pago_ano), "previsto_ano": cont["teto"], "contador": cont,
         "gabinetes_registrado_ano": r2(atual["gabinetes"]),
         "divergencias": {k: sorted(v) for k, v in diverg.items()},
