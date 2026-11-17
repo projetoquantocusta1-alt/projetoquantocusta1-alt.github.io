@@ -10,6 +10,7 @@ Uso:
 Se uma esfera não responder, mantém o último número bom dela (do arquivo anterior).
 """
 import argparse
+from collections import Counter
 import json
 import re
 import sys
@@ -22,7 +23,8 @@ SAIDA = RAIZ / "dados" / "totais_hub.json"
 SAIDA_ESTADOS = RAIZ / "dados" / "estados.json"
 SAIDA_BUSCA = RAIZ / "dados" / "busca.json"
 CONTA = "projetoquantocusta1-alt"
-REPOS = {"deputados": "quanto-custa-deputados", "senadores": "quanto-custa-senadores", "municipios": "quanto-custa-municipios"}
+REPOS = {"deputados": "quanto-custa-deputados", "senadores": "quanto-custa-senadores", "municipios": "quanto-custa-municipios",
+         "municipios_ba": "quanto-custa-municipios-ba"}
 SITE = "https://quantocustaum.com/{repo}/"
 RAW = "https://raw.githubusercontent.com/" + CONTA + "/{repo}/main/docs/dados/{caminho}"
 USER_AGENT = "ProjetoQuantoCusta/1.0 (painel de transparencia com dados abertos)"
@@ -234,6 +236,58 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
     }
 
 
+def municipios_siconfi(f: Fonte, ano: int, mes_atual: int, uf: str) -> dict:
+    """Câmaras municipais de um estado coletado pelo SICONFI (Tesouro Nacional; hoje, a Bahia).
+
+    O relatório do Tesouro (RREO) é bimestral e traz o empenhado e o LIQUIDADO por função (não o pago). O contador
+    avança no ritmo do liquidado (o empenhado corre na frente: folha e contratos são empenhados no começo do ano).
+    Um ano entra como completo no histórico quando todas as prefeituras entregaram o 6º bimestre."""
+    meta = f.get("meta.json") or {}
+    res = f.get("resumo.json") or {}
+    ix = {c: i for i, c in enumerate(res.get("campos") or [])}
+    if not ix:
+        raise RuntimeError("sem resumo")
+    fatores = {str(k): v for k, v in ((meta.get("ipca") or {}).get("fatores") or {}).items()}
+    total_mun = meta.get("total_municipios") or len(res.get("municipios") or [])
+    por_ano: dict[str, dict] = {}
+    ritmo_mensal = ja = liq_ano = 0.0
+    for m in res.get("municipios") or []:
+        for a, ln in (m.get("anos") or {}).items():
+            q = por_ano.setdefault(a, {"camara": 0.0, "n": 0, "n6": 0, "vereadores": 0, "per": []})
+            cam = ln[ix["camara"]] or 0
+            q["camara"] += cam
+            q["n"] += 1
+            q["n6"] += 1 if ln[ix["periodo"]] == 6 else 0
+            q["vereadores"] += ln[ix["n_vereadores"]] or 0
+            q["per"].append(ln[ix["periodo"]])
+            if int(a) == ano and ln[ix["periodo"]]:
+                meses = ln[ix["periodo"]] * 2
+                liq = ln[ix["camara_liquidado"]] or 0
+                ritmo_mensal += liq / meses
+                ja += cam
+                liq_ano += liq
+    completos = sorted(int(a) for a, q in por_ano.items() if q["n6"] >= total_mun)
+    atual = por_ano.get(str(ano), {"camara": 0.0, "n": 0, "per": []})
+    md = max(0, mes_atual - 1)
+    cont = ritmo(ano, ritmo_mensal * md if md else liq_ano, md, ritmo_mensal * (12 - md))
+    # ano "completo" no gráfico: todas as prefeituras que entregaram mandaram o ano inteiro (as que não entregaram
+    # são listadas no site); o ano em andamento é sempre parcial
+    hist = [[int(a), r2(q["camara"] * fatores.get(a, 1)), int(a) < ano and q["n6"] == q["n"]] for a, q in sorted(por_ano.items())]
+    fechado = max((int(a) for a, q in por_ano.items() if int(a) < ano and q["vereadores"]), default=None)
+    q_f = por_ano.get(str(fechado)) if fechado else None
+    per = Counter(atual["per"]).most_common(1)
+    return {
+        "uf": uf, "ano": ano, "cobertura": atual["n"], "total_municipios": total_mun, "anos_completos": completos,
+        "registrado_ano": r2(ja), "liquidado_ano": r2(liq_ano), "total_ano": cont["ja"], "contador": cont,
+        "bimestre": per[0][0] if per else None, "faltas_ano": (meta.get("faltas") or {}).get(str(ano), []),
+        "historico": hist, "desde": min((int(a) for a in por_ano), default=None),
+        "vereadores": int(q_f["vereadores"]) if q_f else None,
+        "por_vereador": {"ano": fechado, "valor": r2(q_f["camara"] * fatores.get(str(fechado), 1) / q_f["vereadores"])} if q_f and q_f["vereadores"] else None,
+        "atualizado_em": meta.get("gerado_em"), "url": SITE.format(repo=REPOS["municipios"]) + f"?uf={uf.lower()}",
+        "fonte": "SICONFI (Tesouro Nacional)",
+    }
+
+
 # ------------------------------------------------------------------ validações (antes de publicar)
 def robo_rodando(repo: str) -> bool:
     """True se algum robô do repositório está rodando agora (API pública do GitHub)."""
@@ -265,7 +319,7 @@ def validar(nome: str, x: dict, ano: int) -> list[str]:
 
 
 # ------------------------------------------------------------------ fase 2: estados e busca
-def estados(fd: Fonte, fs: Fonte, fm: Fonte, ano: int) -> dict:
+def estados(fd: Fonte, fs: Fonte, fm: Fonte, ano: int, fb: Fonte | None = None) -> dict:
     """Por UF, no ano atual: deputados, senadores e (só no CE) câmaras e gabinetes municipais, emendas e população."""
     uf: dict[str, dict] = {}
 
@@ -301,6 +355,19 @@ def estados(fd: Fonte, fs: Fonte, fm: Fonte, ano: int) -> dict:
         x = e("CE")
         x["mun"] = {"com_dados": n, "total": meta.get("total_municipios") or 184, "custo": r2(cust), "gabinetes": r2(gab), "emendas": r2(em),
                     "populacao": int(pop) or None}
+    # Bahia (SICONFI): só a câmara; gabinetes e emendas não existem nessa fonte
+    rb = (fb.get("resumo.json") or {}) if fb else {}
+    ixb = {c: i for i, c in enumerate(rb.get("campos") or [])}
+    if ixb:
+        n = cust = pop = 0
+        for m in rb.get("municipios") or []:
+            ln = (m.get("anos") or {}).get(str(ano))
+            if ln:
+                n += 1
+                cust += ln[ixb["camara"]] or 0
+                pop += ln[ixb["populacao"]] or 0
+        e("BA")["mun"] = {"com_dados": n, "total": (fb.get("meta.json") or {}).get("total_municipios") or 417, "custo": r2(cust),
+                          "gabinetes": None, "emendas": None, "populacao": int(pop) or None, "fonte": "SICONFI"}
     out = {}
     for u, x in uf.items():
         d, s_ = x["dep"], x["sen"]
@@ -354,7 +421,8 @@ def montar(local: Path | None = None, hoje: date | None = None, anterior: dict |
     anterior = anterior or {}
     out = {"gerado_em": datetime.now(timezone.utc).isoformat(timespec="minutes"), "ano": ano, "esferas": {}, "status": {}}
     fazer = {"deputados": lambda f: deputados(f, ano), "senadores": lambda f: senadores(f, ano),
-             "municipios": lambda f: municipios(f, ano, hoje.month)}
+             "municipios": lambda f: municipios(f, ano, hoje.month),
+             "municipios_ba": lambda f: municipios_siconfi(f, ano, hoje.month, "BA")}
     for nome, fn in fazer.items():
         try:
             if not local and robo_rodando(REPOS[nome]):
@@ -377,7 +445,8 @@ def montar(local: Path | None = None, hoje: date | None = None, anterior: dict |
     out["contador"] = {k: v["contador"] for k, v in es.items()}
     # o contador principal é o Congresso Nacional; os municípios do Ceará têm contador próprio
     out["total_ano"] = r2(sum(es[k]["total_ano"] for k in ("deputados", "senadores") if k in es))
-    out["total_ano_municipios"] = r2(es["municipios"]["total_ano"]) if "municipios" in es else None
+    mun = [es[k] for k in ("municipios", "municipios_ba") if k in es]
+    out["total_ano_municipios"] = r2(sum(x["total_ano"] for x in mun)) if mun else None
     bases = [es[k]["dava"] for k in ("deputados", "senadores") if es.get(k, {}).get("dava")]
     if bases:
         base = sum(b["base"] for b in bases)
@@ -400,7 +469,8 @@ def main(argv=None):
     out = montar(args.local, anterior=anterior)
     ano = date.today().year
     fontes = [Fonte(REPOS[k], args.local) for k in ("deputados", "senadores", "municipios")]
-    for nome, fn, caminho in (("estados", lambda: estados(*fontes, ano), SAIDA_ESTADOS), ("busca", lambda: busca(*fontes), SAIDA_BUSCA)):
+    fonte_ba = Fonte(REPOS["municipios_ba"], args.local)
+    for nome, fn, caminho in (("estados", lambda: estados(*fontes, ano, fonte_ba), SAIDA_ESTADOS), ("busca", lambda: busca(*fontes), SAIDA_BUSCA)):
         try:
             v = fn()
             if v and (nome != "estados" or v["ufs"]):

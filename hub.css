@@ -210,3 +210,7 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
 }
 .aviso.diverg { background: #FDF0EF; border-color: #E3A6A0; color: #4a1f1b; }
 .aviso.diverg a { color: #8a2a22; }
+
+/* cartão dos municípios: parte de cada estado */
+.cartao .partes { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: -4px 0 10px; font-size: 13px; color: var(--muted, #5B7189); }
+.cartao .partes b { color: var(--ink, #10243A); }
