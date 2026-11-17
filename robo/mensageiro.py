@@ -195,6 +195,9 @@ def municipios(f: Fonte, ano: int, mes_atual: int) -> dict:
                     sit = dif = None
                 if sit in ("sem_balancete", "diferenca"):
                     diverg.setdefault(sit, []).append([m.get("nome"), dif])
+                # a prefeitura (Poder Executivo) não mandou o balancete do ano: o site deixa o gasto total em branco
+                if "gasto_total" in ix and ln[ix["gasto_total"]] is None:
+                    diverg.setdefault("prefeitura", []).append([m.get("nome"), None])
             if int(a) == ano:
                 meses = (ln[ix["mes_ref"]] or 0) % 100
                 if meses:
@@ -285,12 +288,57 @@ def municipios_siconfi(f: Fonte, ano: int, mes_atual: int, uf: str) -> dict:
         "uf": uf, "ano": ano, "cobertura": atual["n"], "total_municipios": total_mun, "anos_completos": completos,
         "registrado_ano": r2(ja), "liquidado_ano": r2(liq_ano), "total_ano": cont["ja"], "contador": cont,
         "bimestre": per[0][0] if per else None, "faltas_ano": (meta.get("faltas") or {}).get(str(ano), []), "alertas_ano": [x[0] for x in (meta.get("alertas_camara") or {}).get(str(ano), [])],
+        "alertas_tipo": [[x[0], x[1]] for x in (meta.get("alertas_camara") or {}).get(str(ano), [])],
+        # há quantos anos seguidos (até o atual) cada prefeitura que faltou não entrega o relatório
+        "faltas_seguidas": {n: sum(1 for _ in __import__("itertools").takewhile(lambda a: n in (meta.get("faltas") or {}).get(str(a), []), range(ano, 2000, -1)))
+                            for n in (meta.get("faltas") or {}).get(str(ano), [])},
         "historico": hist, "desde": min((int(a) for a in por_ano), default=None),
         "vereadores": int(q_f["vereadores"]) if q_f else None,
         "por_vereador": {"ano": fechado, "valor": r2(q_f["camara"] * fatores.get(str(fechado), 1) / q_f["vereadores"])} if q_f and q_f["vereadores"] else None,
         "atualizado_em": meta.get("gerado_em"), "url": SITE.format(repo=REPOS["municipios"]) + f"?uf={uf.lower()}",
         "fonte": "SICONFI (Tesouro Nacional)",
     }
+
+
+def pendencias(es: dict, ano: int) -> dict:
+    """Lista "Quem não prestou contas": prefeituras e câmaras que não enviaram as contas do ano ao tribunal ou ao
+    Tesouro, ou cujos números não fecham. Cada item: grupo (nao_enviou / nao_fecha / anterior), UF, cidades,
+    descrição e etiqueta."""
+    tit = lambda n: " ".join(p if (i and p in {"de", "da", "do", "das", "dos", "e"}) else p.capitalize()
+                             for i, p in enumerate(str(n or "").lower().split()))
+    itens = []
+    ce, ba = es.get("municipios") or {}, es.get("municipios_ba") or {}
+    dv = ce.get("divergencias") or {}
+    if dv.get("prefeitura"):
+        itens.append({"grupo": "nao_enviou", "uf": "CE", "cidades": [tit(n) for n, _ in dv["prefeitura"]],
+                      "desc": "prefeitura sem balancete no TCE-CE; só a câmara enviou", "etq": "prefeitura"})
+    if dv.get("sem_balancete"):
+        itens.append({"grupo": "nao_enviou", "uf": "CE", "cidades": [tit(n) for n, _ in dv["sem_balancete"]],
+                      "desc": "câmara sem balancete no TCE-CE; valor pela soma das notas", "etq": "câmara"})
+    if ba.get("faltas_ano"):
+        seg = ba.get("faltas_seguidas") or {}
+        novos = [n for n in ba["faltas_ano"] if (seg.get(n) or 1) <= 1]
+        for n in ba["faltas_ano"]:
+            if (seg.get(n) or 1) > 1:
+                itens.append({"grupo": "nao_enviou", "uf": "BA", "cidades": [n],
+                              "desc": f"não entrega o relatório ao Tesouro desde {ano - seg[n] + 1}", "etq": f"{seg[n]} anos sem"})
+        if novos:
+            itens.append({"grupo": "nao_enviou", "uf": "BA", "cidades": novos,
+                          "desc": "relatório do ano (RREO) não entregue ao Tesouro", "etq": f"nada de {ano}"})
+    if dv.get("diferenca"):
+        itens.append({"grupo": "nao_fecha", "uf": "CE", "cidades": [tit(n) for n, _ in dv["diferenca"]],
+                      "desc": "notas de empenho da câmara ≠ balancete", "etq": "diferença"})
+    al = ba.get("alertas_tipo") or []
+    for tipo, desc, etq in (("zerada", "câmara veio zerada no relatório da prefeitura", "câmara zerada"),
+                            ("fora_do_padrao", "valor da câmara fora do padrão no relatório", "fora do padrão")):
+        cs = [n for n, t in al if t == tipo]
+        if cs:
+            itens.append({"grupo": "nao_fecha", "uf": "BA", "cidades": cs, "desc": desc, "etq": etq})
+    for a, l in sorted((ce.get("faltam") or {}).items()):
+        if l:
+            itens.append({"grupo": "anterior", "uf": "CE", "cidades": [tit(n) for n in l],
+                          "desc": f"sem dados de {a} no TCE-CE (o robô procura todo dia)", "etq": str(a)})
+    return {"ano": ano, "itens": itens, "total": sum(len(i["cidades"]) for i in itens)}
 
 
 # ------------------------------------------------------------------ validações (antes de publicar)
@@ -452,6 +500,7 @@ def montar(local: Path | None = None, hoje: date | None = None, anterior: dict |
     out["total_ano"] = r2(sum(es[k]["total_ano"] for k in ("deputados", "senadores") if k in es))
     mun = [es[k] for k in ("municipios", "municipios_ba") if k in es]
     out["total_ano_municipios"] = r2(sum(x["total_ano"] for x in mun)) if mun else None
+    out["pendencias"] = pendencias(es, ano)
     bases = [es[k]["dava"] for k in ("deputados", "senadores") if es.get(k, {}).get("dava")]
     if bases:
         base = sum(b["base"] for b in bases)

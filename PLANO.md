@@ -49,3 +49,32 @@
 4. Decidir o nome do repositório do CE (`quanto-custa-municipios` → `quanto-custa-municipios-ce`?) — renomear muda o endereço
    do site (o GitHub Pages não redireciona), então fazer só com o hub já apontando para o novo endereço.
 5. Próximo estado: escolher qual e estudar a fonte de dados do tribunal de contas dele.
+
+# Ideia anotada (17/11/2026): Índice de Transparência e Governança Pública
+
+Uma nota (por exemplo de 0 a 100) para cada órgão — Assembleia Legislativa, prefeitura, câmara municipal, tribunal de
+contas como fonte — medindo **o quanto ele facilita ou dificulta que o cidadão veja como o dinheiro é gasto**.
+Base: as dificuldades que os robôs do projeto encontram na prática (os robôs podem guardar essas evidências
+automaticamente: cada tentativa, falha, atraso e divergência, com data).
+
+Critérios (a partir do que já aconteceu):
+1. **Acesso**: o site responde a robôs e a pessoas de fora? (bloqueados aos computadores do GitHub: TCM-BA, ALMG,
+   CLDF, ALEPE, ALRS, ALMA; ALESP com erro 503; ALRN com erro interno; ALEPI com certificado de segurança inválido.)
+2. **Formato aberto**: CSV, JSON ou API (bom) x HTML página a página, PDF ou planilha avulsa (ruim). Ex.: Alece com CSV
+   mensal; ALBA com 20 notas por página e uma página por nota; ALPB com listas carregadas depois de abrir.
+3. **Detalhe**: nota a nota, com CNPJ/CPF do fornecedor? Folha de pagamento com o nome de cada pessoa? (ALBA não
+   publica a folha nominal, só o subsídio fixado em lei.)
+4. **Pontualidade**: entrega no prazo do balancete (TCE) e do RREO (Tesouro)? (Glória-BA: 10 anos sem entregar o
+   RREO; Anagé e Caetité sem 2026; prefeituras do CE sem o balancete do Executivo; câmaras de Moraújo, Tianguá e
+   Caucaia sem balancete.)
+5. **Consistência**: os números fecham? (notas x balancete: Acaraú, Ipu, Itarema; câmara zerada ou fora do padrão no
+   RREO: Itabuna, Érico Cardoso e cerca de 20 câmaras por ano de 2019 a 2022.)
+6. **Qualidade do cadastro**: nomes que batem entre folha e verba, sem linhas estranhas misturadas (arquivo antigo da
+   Alece misturava aposentadorias e empenhos globais; nomes digitados com erro; "nome não identificado").
+7. **Histórico**: anos anteriores disponíveis e no mesmo formato (Alece só confiável desde 2023).
+8. **Estabilidade e documentação**: o endereço muda? há explicação dos campos? robots.txt claro? detalhes como "o mês
+   precisa ter dois dígitos, senão o arquivo vem vazio".
+
+Como mostrar: ranking por esfera e por estado, ficha de cada órgão com as evidências (o que faltou, quando, desde
+quando), metodologia pública com os pesos, e atualização automática pelos robôs. Ligar à lista "Quem não prestou
+contas" do site principal, que já é um primeiro passo.

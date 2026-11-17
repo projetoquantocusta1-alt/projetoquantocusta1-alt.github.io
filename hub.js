@@ -83,6 +83,29 @@ function somaHist(a, b) {
   const mb = new Map((b || []).map((h) => [h[0], h]));
   return (a || []).filter((h) => mb.has(h[0])).map(([ano, v, c]) => [ano, v + mb.get(ano)[1], c && mb.get(ano)[2]]);
 }
+// "Quem não prestou contas": prefeituras e câmaras que não enviaram as contas ou cujos números não fecham
+const GRUPOS_PEND = [["nao_enviou", "Não enviaram o relatório ou o balancete", "var(--pend-verm, #C84C4C)", "v"],
+  ["nao_fecha", "Os números não fecham", "#D69A32", "a"], ["anterior", "Anos anteriores", "#5B7189", "c"]];
+let PEND_UF = "";
+function pendencias(T) {
+  const P = T.pendencias, el = $("#pendencias");
+  if (!el) return;
+  if (!P?.itens?.length) { el.hidden = true; return; }
+  el.hidden = false;
+  const n = (uf) => P.itens.filter((i) => !uf || i.uf === uf).reduce((s, i) => s + i.cidades.length, 0);
+  const ufs = [...new Set(P.itens.map((i) => i.uf))], NOME = { CE: "Ceará", BA: "Bahia" };
+  const abas = [["", "Todos"], ...ufs.map((u) => [u, NOME[u] || u])].map(([u, r]) => `<button type="button" class="aba${PEND_UF === u ? " on" : ""}" data-pend-uf="${u}">${r} (${nf(n(u))})</button>`).join("");
+  const grupos = GRUPOS_PEND.map(([g, tit, cor, cls]) => {
+    const its = P.itens.filter((i) => i.grupo === g && (!PEND_UF || i.uf === PEND_UF));
+    if (!its.length) return "";
+    return `<div class="grupo"><div class="g-tit"><span class="bola" style="background:${cor}"></span>${tit}<span class="q num">${nf(its.reduce((s, i) => s + i.cidades.length, 0))}</span></div><ul>${
+      its.map((i) => `<li><span class="uf">${esc(i.uf)}</span><span class="cid">${esc(i.cidades.join(" · "))}<small>${esc(i.desc)}</small></span><span class="st ${cls}">${esc(i.etq)}</span></li>`).join("")}</ul></div>`;
+  }).join("");
+  el.innerHTML = `<div class="p-cab"><h3>Quem não prestou contas em ${P.ano}</h3><p>Cidades que não enviaram as contas ao tribunal de contas ou ao Tesouro, ou cujos números não fecham. A obrigação de informar é de cada prefeitura e câmara.</p></div>
+    <div class="abas">${abas}</div><div class="grupos">${grupos}</div>
+    <div class="p-rod">Atualizado todo dia pelos robôs · fontes: TCE-CE e Tesouro Nacional (SICONFI) · lista completa, ano a ano: <a href="${SITES.mun}#camaras">Ceará</a> · <a href="${SITES.mun}?uf=ba#metodo">Bahia</a></div>`;
+  el.querySelectorAll("[data-pend-uf]").forEach((b) => (b.onclick = () => { PEND_UF = b.dataset.pendUf; pendencias(T); }));
+}
 function cartao(id, x, T) {
   const e = ESF[id];
   if (!x) return `<article class="cartao" style="--c:${e.cor}"><div class="k">${e.k}</div><h3>${e.nome}</h3><p class="sub">Dados indisponíveis no momento.</p></article>`;
@@ -104,12 +127,14 @@ function cartao(id, x, T) {
             ...(b?.por_vereador ? [[`por vereador, por ano na Bahia (${b.por_vereador.ano}, valores de hoje)`, curto(b.por_vereador.valor)]] : []),
             [`gabinetes do prefeito e do vice no Ceará em ${x.ano} (órgão inteiro, fora do total; a Bahia não tem esse dado)`, curto(x.gabinetes_registrado_ano || 0)]];
     if (b) partes = `<p class="partes"><span><b>Ceará</b> ${curto(x.registrado_ano)} · ${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades</span><span><b>Bahia</b> ${curto(b.registrado_ano)} · ${nf(b.cobertura)} de ${nf(b.total_municipios)} cidades${b.bimestre && b.bimestre < 6 ? `, até ${["", "fev", "abr", "jun", "ago", "out", "dez"][b.bimestre]}` : ""}</span></p>`;
-    if (b) avisoBa = `<p class="aviso">Bahia: dados do Tesouro Nacional (SICONFI), porque o tribunal de contas dos municípios da Bahia não responde ao nosso robô; sem nota a nota nem gabinetes.${b.bimestre && b.bimestre < 6 ? ` O valor de ${b.ano} é o empenhado até ${["", "fevereiro", "abril", "junho", "agosto", "outubro"][b.bimestre]}, que já fica perto do ano inteiro: as câmaras empenham a folha e os contratos do ano logo no começo.` : ""}${(b.faltas_ano || []).length ? ` Não entregaram o relatório de ${b.ano}: ${esc(b.faltas_ano.join(", "))}.` : ""}${(b.alertas_ano || []).length ? ` Fora da soma por valor da câmara que não confere no relatório (zerado ou fora do padrão): ${esc(b.alertas_ano.join(", "))}.` : ""}</p>`;
+    if (b) avisoBa = `<p class="aviso">Bahia: dados do Tesouro Nacional (SICONFI), porque o tribunal de contas dos municípios da Bahia não responde ao nosso robô; sem nota a nota nem gabinetes.${b.bimestre && b.bimestre < 6 ? ` O valor de ${b.ano} é o empenhado até ${["", "fevereiro", "abril", "junho", "agosto", "outubro"][b.bimestre]}, que já fica perto do ano inteiro: as câmaras empenham a folha e os contratos do ano logo no começo.` : ""}</p>`;
     const dv = x.divergencias || {}, tit = (n) => String(n || "").toLowerCase().replace(/(^|\s)(\p{L})/gu, (m) => m.toUpperCase());
     const sb = (dv.sem_balancete || []).map(([n]) => tit(n)), df = (dv.diferenca || []).map(([n]) => tit(n));
-    if (sb.length || df.length) avisoDiv = `<p class="aviso diverg">${sb.length ? `<b>Sem balancete enviado ao TCE-CE em ${x.ano}:</b> câmara${sb.length > 1 ? "s" : ""} de ${esc(sb.join(", "))} (valor pela soma das notas de empenho). ` : ""}${df.length ? `<b>Notas e balancete não batem:</b> ${esc(df.join(", "))}. ` : ""}<a href="${x.url}#camaras">ver detalhes</a></p>`;
+    const P = T.pendencias;
+    if (P?.total) avisoDiv = `<a class="chamada-pend" href="#pendencias"><span class="n num">${nf(P.total)}</span><span>prefeituras e câmaras com contas faltando ou que não fecham em ${P.ano}. <b>Veja a lista ↓</b></span></a>`;
+    else if (sb.length || df.length) avisoDiv = `<p class="aviso diverg">${sb.length ? `<b>Sem balancete enviado ao TCE-CE em ${x.ano}:</b> câmara${sb.length > 1 ? "s" : ""} de ${esc(sb.join(", "))} (valor pela soma das notas de empenho). ` : ""}${df.length ? `<b>Notas e balancete não batem:</b> ${esc(df.join(", "))}. ` : ""}<a href="${x.url}#camaras">ver detalhes</a></p>`;
     const fal = Object.entries(x.faltam || {}).filter(([, l]) => l.length);
-    if (x.em_coleta) aviso = `<p class="aviso">${x.cobertura < x.total_municipios ? `Ceará: ${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades têm dados de ${x.ano}. ` : ""}${fal.length
+    if (x.em_coleta && !P?.total) aviso = `<p class="aviso">${x.cobertura < x.total_municipios ? `Ceará: ${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades têm dados de ${x.ano}. ` : ""}${fal.length
       ? `Ceará, sem dados no TCE-CE: ${fal.map(([a, l]) => `${a} (${esc(l.map(tit).join(", "))})`).join("; ")}; o robô procura de novo todos os dias. ${comp.length ? `Por isso a série com todas as cidades começa em ${comp[0]}.` : ""}`
       : comp.length ? `Série completa: ${comp[0]}–${comp[comp.length - 1]}.` : ""}</p>`;
   }
@@ -317,6 +342,7 @@ async function iniciar() {
   comparar(T);
   const sl = $("#dava-pct"); if (sl) { if (T.dava) sl.value = Math.round(T.dava.percentual * 100); sl.oninput = () => { DAVA_PCT = sl.value / 100; dava(T); }; }
   $("#cartoes").innerHTML = ["deputados", "senadores", "municipios"].map((k) => cartao(k, T.esferas[k], T)).join("");
+  pendencias(T);
   dava(T);
   const at = Object.entries(T.esferas).map(([k, v]) => v.atualizado_em ? `${ESF[k]?.nome || (k === "municipios_ba" ? "Prefeituras da Bahia" : k)}: ${new Date(v.atualizado_em).toLocaleString("pt-BR")}` : "").filter(Boolean);
   $("#atualizacao").textContent = `Totais reunidos em ${new Date(T.gerado_em).toLocaleString("pt-BR")}. Última atualização de cada site — ${at.join(" · ")}.`;
