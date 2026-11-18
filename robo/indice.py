@@ -179,9 +179,12 @@ def municipios_siconfi(fb: Fonte, ano: int, uf: str) -> list[dict]:
     r, meta = fb.get("resumo.json") or {}, fb.get("meta.json") or {}
     if not r.get("municipios"):
         return []
-    # primeira coleta ainda em andamento: o estado entra quando o ano passado tiver ao menos 90% das cidades
+    # o estado entra quando a primeira coleta terminou: todos os municípios já foram tentados (têm dados ou estão
+    # na lista de quem não prestou contas), mesmo que a cobertura seja baixa (ex.: RN)
     total = meta.get("total_municipios") or len(r["municipios"])
-    if (meta.get("cobertura") or {}).get(str(ano - 1), 0) < 0.9 * total:
+    cob = (meta.get("cobertura") or {}).get(str(ano - 1), 0)
+    fal = len((meta.get("faltas") or {}).get(str(ano - 1), []))
+    if cob + fal < 0.98 * total:
         return []
     ix = {k: i for i, k in enumerate(r["campos"])}
     v = lambda l, k: l[ix[k]] if k in ix and ix[k] < len(l) else None  # noqa: E731

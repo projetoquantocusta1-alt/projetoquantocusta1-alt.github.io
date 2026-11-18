@@ -222,7 +222,7 @@ function painelUF() {
              linha("SEN", "var(--sen)", x.sen.n > 3 ? `3 senadores <small class="sub">(${nf(x.sen.n)} passaram pelo cargo em ${ano}, contando suplentes que assumiram)</small>` : `${nf(x.sen.n)} senadores`, curto(x.sen.custo));
   if (x.mun) {
     const m = x.mun, completo = m.com_dados >= m.total;
-    rows += linha("MUN", "var(--mun)", `${nf(m.total)} câmaras municipais (registrado)${completo ? "" : ` <small class="sub">(em coleta: ${nf(m.com_dados)} de ${nf(m.total)})</small>`}`, m.com_dados ? curto(m.custo) : "—");
+    rows += linha("MUN", "var(--mun)", `${nf(m.total)} câmaras municipais (registrado)${completo ? "" : ` <small class="sub">(${m.fonte === "SICONFI" ? `${nf(m.com_dados)} de ${nf(m.total)} enviaram ao Tesouro` : `em coleta: ${nf(m.com_dados)} de ${nf(m.total)}`})</small>`}`, m.com_dados ? curto(m.custo) : "—");
     if (m.gabinetes) rows += linha("", "", `Gabinetes do prefeito e do vice <small class="sub">(órgão inteiro, fora do custo dos políticos)</small>`, curto(m.gabinetes));
     if (m.emendas != null) rows += linha("", "", "Emendas recebidas pelos municípios", m.com_dados ? curto(m.emendas) : "—");
     if (m.fonte === "SICONFI") rows += linha("", "", `<span class="sub">Dados do Tesouro Nacional (SICONFI): sem gabinetes nem emendas para este estado.</span>`, "");
