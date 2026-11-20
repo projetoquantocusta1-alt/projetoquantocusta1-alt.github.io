@@ -36,6 +36,12 @@ h1 { font: 700 clamp(28px, 4.4vw, 44px)/1.15 var(--serif); color: var(--marinho)
 .cont-ritmo { margin: 0; font-size: 13px; color: var(--suave); }
 .cont-ritmo b { color: var(--vermelho); }
 .cont-nota { margin: 6px auto 0; font-size: 12px; color: var(--suave); max-width: 640px; }
+.cont-mais { margin: 4px auto 0; max-width: 640px; }
+.cont-mais summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--azul-esc); list-style: none; display: inline-block; padding: 2px 6px; border-radius: 6px; }
+.cont-mais summary::-webkit-details-marker { display: none; }
+.cont-mais summary::after { content: " ▾"; }
+.cont-mais[open] summary::after { content: " ▴"; }
+.cont-mais summary:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 
 /* esferas */
 .faixa { background: var(--cinza); padding: 30px 0 36px; }

@@ -36,7 +36,9 @@ O dono **não é programador**: responder sempre em **português simples**. Publ
 1. **Toda limitação dos dados é explicada no site, com o motivo** (na página e na Metodologia).
 2. **Divergência nos dados oficiais é sempre informada**, dizendo de quem é a responsabilidade.
 3. **Não publicar número que não dá para conferir** — na dúvida, fica de fora, com aviso.
-4. **CPF nunca inteiro** — sempre mascarado (`***.456.789-**`), em dados, páginas e brutos.
+4. **CPF nunca inteiro** — sempre mascarado (`***.456.789-**`), em dados, páginas e brutos. O mascarador fica em
+   `quanto-custa-nucleo/quanto_custa/privacidade.py` e tem **cópias idênticas** em `coletor/privacidade.py` de
+   deputados, senadores, municipios e deputados-estaduais: **mudou um, copie para os outros quatro.**
 5. **Anonimato** — nenhum nome de autor nem link pessoal ("Sociedade do Progresso" pode).
 6. **robots.txt respeitado**; robôs consultam devagar (pausa entre consultas).
 7. Robôs gravam como `robo-quanto-custa`; **não enviar mudanças enquanto o robô do mesmo repositório salva**.
@@ -102,8 +104,13 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 8. Convenções de trabalho (como o Claude deve agir)
 
-- **Rodapé de commit** (confira o lembrete da sessão, o modelo muda): atualmente
-  `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>` + linha `Claude-Session: <link>`.
+- **Rodapé de commit**: usar as linhas que o lembrete da sessão indicar (`Co-Authored-By: ...` + `Claude-Session: <link>`;
+  o modelo muda de uma sessão para outra).
+- **Auditoria de sempre** (quando o dono pedir "rode a auditoria de sempre"): (1) robôs — últimas execuções no Actions;
+  (2) testes — `python -m pytest -q` em cada repositório; (3) valores — `python robo/auditoria.py --local /home/user`
+  (refaz as contas a partir dos dados dos sites, procura CPF inteiro; ERRO = corrigir, INFO = casos para olhar);
+  o Mensageiro com `--local` deve reproduzir `dados/totais_hub.json` igualzinho (só muda o horário);
+  (4) páginas — renderização local (§6), no computador e no celular.
 - **Publicar na `main`** e force-sync da branch `claude/proposed-changes-bugs-f0f8xj`. **Não criar PR** sem pedido.
 - **Não reescrever commits do robô** (`robo-quanto-custa`): aparecem como "Unverified", é normal; deixar como estão.
 - **Não enviar enquanto um robô do mesmo repo está salvando** (regra 7).
@@ -111,17 +118,31 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - Ao mudar um arquivo servido (js/css), **subir o `?v=N`** nos HTML que o referenciam (cache).
 - `git reset --hard` costuma ser bloqueado pelo modo automático — usar `git merge --ff-only FETCH_HEAD`.
 
-## 9. Estado atual (2026-11-20)
+## 9. Estado atual (2026-11-20, depois da auditoria)
 
 - **No ar:** deputados federais, senadores, prefeituras **CE/BA/PE/PB/RN**, deputados estaduais **CE/BA/RN**,
   Índice de Governança (prévia). Pages ligado em todos.
 - **19/11:** todos os robôs rodaram com sucesso; dados frescos; as 12 páginas principais renderizam sem erro de JS;
   fluxos (busca, abrir cidade, "mostrar mais", mapa, abas, fichas) testados e OK no computador e no celular.
-- **Auditoria de valores:** 73 checagens, 0 erros. Casos conhecidos que **NÃO são erro** (o dono mandou manter):
+- **Auditoria de 20/11** (`robo/auditoria.py`): 111 checagens, 0 erros, 30 informativos; 92 testes ok; 14 páginas
+  sem erro no computador e no celular; Mensageiro reproduz os totais publicados.
+  - **CPF corrigido em 20/11:** o mascarador deixava passar CPF com algo colado depois (`...-31-2`, `...-53.366...`),
+    CPF sem pontuação depois da palavra "CPF" (inclusive de **menores** numa nota de banda de música, CE) e o
+    "nº do documento" das notas dos deputados (não passava pelo mascarador). Mascarador novo + 12 arquivos limpos
+    (só as regras novas foram aplicadas nos arquivos, para não mexer em números de processo).
+- **Auditoria de valores anterior (19/11):** 73 checagens, 0 erros. Casos conhecidos que **NÃO são erro** (o dono mandou manter):
   câmara "zerada ou negativa" (já excluída da soma); "liquidado > empenhado" (restos a pagar, legítimo); custo por
   vereador alto nas capitais (câmara inteira ÷ vereadores).
 
 ## 10. Em aberto / ideias anotadas
+
+- **Avisos pendentes (aguardando o dono, depois de explicado o impacto):** cota negativa de 4 deputados em 2013
+  (devolução maior que o gasto), emenda paga > empenhada (Vinícius Gurgel 2018, restos a pagar), receitas do CE em
+  que transferências + própria passam da total em 1–2% (Baixio, Brejo Santo, Catarina…; provável dedução do Fundeb),
+  e trocar "(1.175 cidades)" do hub por "(1.038 de 1.175 cidades com dados de 2026)".
+- **Vereadores a conferir no TSE:** número par ou acima do limite constitucional (Aracati 16, Cascavel 10,
+  Arcoverde 10, Parnamirim 18, Boa Nova…); a auditoria lista todos em INFO. Afeta o custo por vereador.
+- 17 cidades SICONFI não estão nem na cobertura nem em "faltas" do ano (3 BA, 5 PE, 4 PB, 5 RN).
 
 - **Partido em branco** nos deputados estaduais do RN (a fonte só dá código) — opcional preencher.
 - **TCM-BA** não responde aos runners → BA/PE/PB/RN ficam sem nota a nota (só SICONFI). Testar os TCEs desses estados
@@ -143,3 +164,6 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   regra passou de "90%" para "primeira coleta terminou"; Bahia passa a coletar por último; PE corrigido para 184
   municípios; rodapé do Índice sem fonte repetida.
 - **19–20/11:** auditoria geral (valores 0 erros; layout e fluxos OK); criado este CONTEXTO.md.
+- **20/11 (tarde):** nova auditoria guardada em `robo/auditoria.py`; correção do CPF (ver §9); design: no hub, o texto
+  longo das câmaras foi para "Como calculamos ▾"; nas prefeituras BA/PE/PB/RN o aviso do SICONFI virou uma linha que
+  abre ao tocar.
