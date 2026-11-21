@@ -4,7 +4,7 @@
 "leia o CONTEXTO.md do repositório projetoquantocusta1-alt.github.io". Ele tem tudo para continuar sem reler
 conversas antigas. **Mantenha este arquivo atualizado** ao fim de cada mudança grande ou auditoria.
 
-Última atualização: 2026-11-20.
+Última atualização: 2026-11-21.
 
 ---
 
@@ -118,12 +118,17 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - Ao mudar um arquivo servido (js/css), **subir o `?v=N`** nos HTML que o referenciam (cache).
 - `git reset --hard` costuma ser bloqueado pelo modo automático — usar `git merge --ff-only FETCH_HEAD`.
 
-## 9. Estado atual (2026-11-20, depois da auditoria)
+## 9. Estado atual (2026-11-21, depois da auditoria)
 
 - **No ar:** deputados federais, senadores, prefeituras **CE/BA/PE/PB/RN**, deputados estaduais **CE/BA/RN**,
   Índice de Governança (prévia). Pages ligado em todos.
 - **19/11:** todos os robôs rodaram com sucesso; dados frescos; as 12 páginas principais renderizam sem erro de JS;
   fluxos (busca, abrir cidade, "mostrar mais", mapa, abas, fichas) testados e OK no computador e no celular.
+- **Auditoria de 21/11:** robôs ok (todos gravaram em 21/11, já com o mascarador novo); 103 testes ok; Mensageiro
+  reproduz os totais; `robo/auditoria.py` 111 ok / 0 erros / 30 informativos; nenhum CPF inteiro; mapa = totais
+  (deputados e senadores somam igual ao hub); IPCA com a mesma referência (10/2026) em todos os sites; 14 páginas sem
+  erro (computador e celular); cidades de cada estado abrem certo; 29 links internos do hub sem quebra.
+  Achados novos: **busca do hub só tem o Ceará** e **sitemap sem os deputados estaduais** (ver §10).
 - **Auditoria de 20/11** (`robo/auditoria.py`): 111 checagens, 0 erros, 30 informativos; 92 testes ok; 14 páginas
   sem erro no computador e no celular; Mensageiro reproduz os totais publicados.
   - **CPF corrigido em 20/11:** o mascarador deixava passar CPF com algo colado depois (`...-31-2`, `...-53.366...`),
@@ -143,6 +148,10 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - **Vereadores a conferir no TSE:** número par ou acima do limite constitucional (Aracati 16, Cascavel 10,
   Arcoverde 10, Parnamirim 18, Boa Nova…); a auditoria lista todos em INFO. Afeta o custo por vereador.
 - 17 cidades SICONFI não estão nem na cobertura nem em "faltas" do ano (3 BA, 5 PE, 4 PB, 5 RN).
+- **Busca do hub só conhece o Ceará** (`dados/busca.json`: 184 cidades, prefeitos e vereadores só do CE). "Recife",
+  "Mossoró" etc. dão "Nada encontrado"; deputados estaduais também não entram. Falta incluir cidades de BA/PE/PB/RN
+  (link `?uf=xx#municipio/<ibge>`) e os deputados estaduais (CE/BA/RN) no Mensageiro.
+- **sitemap.xml** não tem `/quanto-custa-deputados-estaduais/`.
 
 - **Partido em branco** nos deputados estaduais do RN (a fonte só dá código) — opcional preencher.
 - **TCM-BA** não responde aos runners → BA/PE/PB/RN ficam sem nota a nota (só SICONFI). Testar os TCEs desses estados
