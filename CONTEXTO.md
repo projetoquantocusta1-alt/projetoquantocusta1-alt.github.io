@@ -4,7 +4,7 @@
 "leia o CONTEXTO.md do repositório projetoquantocusta1-alt.github.io". Ele tem tudo para continuar sem reler
 conversas antigas. **Mantenha este arquivo atualizado** ao fim de cada mudança grande ou auditoria.
 
-Última atualização: 2026-11-21.
+Última atualização: 2026-11-22.
 
 ---
 
@@ -24,7 +24,7 @@ O dono **não é programador**: responder sempre em **português simples**. Publ
 | `quanto-custa-deputados` | Deputados federais | Câmara dos Deputados (dados abertos) |
 | `quanto-custa-senadores` | Senadores (+ `sondar.py`/`sondagem.yml`, ver §6) | Senado Federal |
 | `quanto-custa-municipios` | **Página única das prefeituras** (seletor de estado) + Ceará | TCE-CE (nota a nota) |
-| `quanto-custa-municipios-ba`/`-pe`/`-pb`/`-rn` | Prefeituras por estado | **SICONFI / Tesouro Nacional** |
+| `quanto-custa-municipios-ba`/`-pe`/`-pb`/`-rn`/`-ma`/`-pi`/`-al`/`-se` | Prefeituras por estado (Nordeste completo) | **SICONFI / Tesouro Nacional** |
 | `quanto-custa-deputados-estaduais` | Deputados estaduais: CE (Alece), BA (ALBA), RN (ALRN) | portais das Assembleias |
 | `quanto-custa-nucleo` | núcleo comum | — |
 
@@ -52,7 +52,7 @@ O dono **não é programador**: responder sempre em **português simples**. Publ
   ou `--local /home/user` em teste) e gera `dados/totais_hub.json`, `dados/estados.json` (mapa), `dados/busca.json`,
   `dados/indice.json`. Página: `index.html`, `hub.js`, `hub.css`; Índice em `indice/`.
 - **Prefeituras — Ceará:** TCE-CE, **nota a nota** (empenhos, fornecedores, pago). App em `quanto-custa-municipios/docs/app.js`.
-- **Prefeituras — BA/PE/PB/RN (SICONFI):** mesmo **código genérico**. O único que muda por estado é o bloco "ESTADO"
+- **Prefeituras — BA/PE/PB/RN/MA/PI/AL/SE (SICONFI):** mesmo **código genérico** (todo o Nordeste). O único que muda por estado é o bloco "ESTADO"
   em `config.py` (Python) e o bloco `CFG` no começo de `docs/uf.js`. A página única carrega `app.js` (CE) ou
   `../quanto-custa-municipios-XX/uf.js` (outros). SICONFI só tem **totais por área** (sem fornecedor, sem gabinetes).
   - Função **"Legislativa"** (somando exceto-intra + intra) = **câmara**. "DESPESAS (EXCETO INTRA-ORÇAMENTÁRIAS)" =
@@ -120,7 +120,7 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 9. Estado atual (2026-11-21, depois da auditoria)
 
-- **No ar:** deputados federais, senadores, prefeituras **CE/BA/PE/PB/RN**, deputados estaduais **CE/BA/RN**,
+- **No ar:** deputados federais, senadores, prefeituras de **todo o Nordeste (9: CE, BA, PE, PB, RN, MA, PI, AL, SE)**, deputados estaduais **CE/BA/RN**,
   Índice de Governança (prévia). Pages ligado em todos.
 - **19/11:** todos os robôs rodaram com sucesso; dados frescos; as 12 páginas principais renderizam sem erro de JS;
   fluxos (busca, abrir cidade, "mostrar mais", mapa, abas, fichas) testados e OK no computador e no celular.
@@ -173,6 +173,9 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   regra passou de "90%" para "primeira coleta terminou"; Bahia passa a coletar por último; PE corrigido para 184
   municípios; rodapé do Índice sem fonte repetida.
 - **19–20/11:** auditoria geral (valores 0 erros; layout e fluxos OK); criado este CONTEXTO.md.
+- **22/11:** **Nordeste fechado nas prefeituras** — MA, PI, AL, SE entram (SICONFI). A validação do hub (salto
+  ano-a-ano) passou a **pular os estados do SICONFI** (o conjunto de cidades que presta contas muda a cada ano).
+  Auditoria: 102 checagens, 0 erros. SE tem 75/75; MA/PI/RN têm muitos que não prestam contas (publicado "com aviso").
 - **20/11 (tarde):** nova auditoria guardada em `robo/auditoria.py`; correção do CPF (ver §9); design: no hub, o texto
   longo das câmaras foi para "Como calculamos ▾"; nas prefeituras BA/PE/PB/RN o aviso do SICONFI virou uma linha que
   abre ao tocar.
