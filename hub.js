@@ -28,9 +28,9 @@ const ESF = {
   municipios: { cor: "var(--mun)", k: "Prefeituras e câmaras", nome: "Prefeitos e vereadores", ir: "Ver minha cidade, nota a nota" },
 };
 // estados das prefeituras: o Ceará vem do TCE-CE; os outros, do Tesouro Nacional (SICONFI), cada um no seu repositório
-const UF_NOME = { CE: "Ceará", BA: "Bahia", PE: "Pernambuco", PB: "Paraíba", RN: "Rio Grande do Norte" };
-const UF_DO = { CE: "do Ceará", BA: "da Bahia", PE: "de Pernambuco", PB: "da Paraíba", RN: "do Rio Grande do Norte" };
-const UF_EM = { CE: "no Ceará", BA: "na Bahia", PE: "em Pernambuco", PB: "na Paraíba", RN: "no Rio Grande do Norte" };
+const UF_NOME = { CE: "Ceará", BA: "Bahia", PE: "Pernambuco", PB: "Paraíba", RN: "Rio Grande do Norte", MA: "Maranhão", PI: "Piauí", AL: "Alagoas", SE: "Sergipe" };
+const UF_DO = { CE: "do Ceará", BA: "da Bahia", PE: "de Pernambuco", PB: "da Paraíba", RN: "do Rio Grande do Norte", MA: "do Maranhão", PI: "do Piauí", AL: "de Alagoas", SE: "de Sergipe" };
+const UF_EM = { CE: "no Ceará", BA: "na Bahia", PE: "em Pernambuco", PB: "na Paraíba", RN: "no Rio Grande do Norte", MA: "no Maranhão", PI: "no Piauí", AL: "em Alagoas", SE: "em Sergipe" };
 const eLista = (l) => (l.length > 1 ? l.slice(0, -1).join(", ") + " e " + l[l.length - 1] : l[0] || "");
 // esferas municipais pelo SICONFI presentes nos totais (municipios_ba, municipios_pe...)
 const sicEsferas = (T) => Object.keys(T.esferas || {}).filter((k) => k.startsWith("municipios_")).map((k) => T.esferas[k]);
