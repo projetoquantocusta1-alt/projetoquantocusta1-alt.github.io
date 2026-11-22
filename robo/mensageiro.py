@@ -373,11 +373,15 @@ def robo_rodando(repo: str) -> bool:
 def validar(nome: str, x: dict, ano: int) -> list[str]:
     """Problemas que impedem publicar a esfera (o hub mantém o último número bom)."""
     erros = []
-    hist = [h for h in x.get("historico") or [] if h[2] and h[0] < ano]
-    for (a0, v0, _), (a1, v1, _) in zip(hist, hist[1:]):
-        # coleta incompleta aparece como queda forte (ou salto absurdo se o ano anterior estava pela metade)
-        if a1 == a0 + 1 and v0 > 0 and (v1 < 0.5 * v0 or v1 > 2.5 * v0):
-            erros.append(f"{a1}: variação de {100 * (v1 / v0 - 1):+.0f}% sobre {a0} (coleta incompleta?)")
+    # a checagem de salto ano-a-ano só vale onde a cobertura é cheia (CE, deputados, senadores). Nos estados do
+    # SICONFI (municipios_ba, _pe...) o conjunto de cidades que presta contas muda a cada ano, então o total
+    # salta de propósito — não é coleta incompleta.
+    if not nome.startswith("municipios_"):
+        hist = [h for h in x.get("historico") or [] if h[2] and h[0] < ano]
+        for (a0, v0, _), (a1, v1, _) in zip(hist, hist[1:]):
+            # coleta incompleta aparece como queda forte (ou salto absurdo se o ano anterior estava pela metade)
+            if a1 == a0 + 1 and v0 > 0 and (v1 < 0.5 * v0 or v1 > 2.5 * v0):
+                erros.append(f"{a1}: variação de {100 * (v1 / v0 - 1):+.0f}% sobre {a0} (coleta incompleta?)")
     if nome == "municipios":
         c = x.get("_conferir") or {}
         if x.get("vereadores") != c.get("vereadores_fonte"):
