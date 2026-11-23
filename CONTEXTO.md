@@ -2,7 +2,7 @@
 
 **Para que serve este arquivo:** quando uma conversa com o Claude ficar grande (cara), comece outra e peça
 "leia o CONTEXTO.md do repositório projetoquantocusta1-alt.github.io". Ele tem tudo para continuar sem reler
-conversas antigas. **Mantenha este arquivo atualizado** ao fim de cada mudança grande ou auditoria.
+conversas antigas. **REGRA: toda e qualquer mudança (código, dados, layout, regra, auditoria) é registrada aqui**, no histórico (§11), no mesmo passo em que é publicada no GitHub. Sem exceção.
 
 Última atualização: 2026-11-23.
 
@@ -104,6 +104,8 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 8. Convenções de trabalho (como o Claude deve agir)
 
+- **Registrar toda mudança no CONTEXTO.md** (§11), junto com o commit que a publica — é regra do dono.
+
 - **Rodapé de commit**: usar as linhas que o lembrete da sessão indicar (`Co-Authored-By: ...` + `Claude-Session: <link>`;
   o modelo muda de uma sessão para outra).
 - **Auditoria de sempre** (quando o dono pedir "rode a auditoria de sempre"): (1) robôs — últimas execuções no Actions;
@@ -182,3 +184,6 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - **23/11:** conferido que o bug da validação "coleta incompleta" só afetou o **Maranhão** — nos outros 7 estados do
   SICONFI (BA, PE, PB, RN, PI, AL, SE) o salto ano-a-ano das câmaras nunca passou do limite antigo, então nunca foram
   barrados nem ficaram com número velho. Correção (pular SICONFI na validação) cobre todos daqui para frente.
+- **23/11 (tarde):** cartão "Prefeitos e vereadores" do hub ficou mais limpo — removida a lista por estado (nomes +
+  valores) e os 9 quadros "por vereador" por estado; ficam o total, a etiqueta "N estados", UM quadro com a média por
+  vereador dos estados e o aviso do SICONFI (mantido). Detalhe por estado continua na página das cidades (hub.js).
