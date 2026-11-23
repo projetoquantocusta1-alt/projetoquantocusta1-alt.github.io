@@ -134,14 +134,16 @@ function cartao(id, x, T) {
   } else {
     const comp = x.anos_completos || [], sics = sicEsferas(T), N = (b) => UF_NOME[b.uf] || b.uf;
     const nMun = x.total_municipios + sics.reduce((s, b) => s + (b.total_municipios || 0), 0), nVer = (x.vereadores || 0) + sics.reduce((s, b) => s + (b.vereadores || 0), 0);
-    quem = `${nf(nMun)} municípios${sics.length ? ` (${eLista([`Ceará ${nf(x.total_municipios)}`, ...sics.map((b) => `${N(b)} ${nf(b.total_municipios)}`)])})` : ""}${nVer ? ` · ${nf(nVer)} vereadores` : ""}`;
-    tag = eLista(["Ceará", ...sics.map(N)]);
+    quem = `${nf(nMun)} municípios${sics.length ? ` de ${nf(1 + sics.length)} estados` : ""}${nVer ? ` · ${nf(nVer)} vereadores` : ""}`;
+    tag = sics.length <= 2 ? eLista(["Ceará", ...sics.map(N)]) : `${nf(1 + sics.length)} estados`;
     valorRot = `câmaras municipais, registrado em ${x.ano}`;
-    inds = [[`por vereador, por ano no Ceará (${x.por_vereador?.ano ?? "—"}, valores de hoje) · câmara inteira ÷ vereadores`, x.por_vereador ? curto(x.por_vereador.valor) : "—"],
-            ...sics.filter((b) => b.por_vereador).map((b) => [`por vereador, por ano ${UF_EM[b.uf] || "em " + b.uf} (${b.por_vereador.ano}, valores de hoje)`, curto(b.por_vereador.valor)]),
-            [`gabinetes do prefeito e do vice no Ceará em ${x.ano} (órgão inteiro, fora do total; ${sics.length > 1 ? "os outros estados não têm" : sics.length ? `${UF_NOME[sics[0].uf]} não tem` : ""} esse dado)`, curto(x.gabinetes_registrado_ano || 0)]];
+    // média por vereador de todos os estados (câmara ÷ vereadores), em vez de um quadro por estado
+    const comVer = [x, ...sics].filter((e) => e.por_vereador && e.vereadores);
+    const mediaVer = comVer.length ? comVer.reduce((s, e) => s + e.por_vereador.valor * e.vereadores, 0) / comVer.reduce((s, e) => s + e.vereadores, 0) : null;
+    inds = [[`por vereador, por ano (média dos ${nf(1 + sics.length)} estados, valores de hoje) · câmara inteira ÷ vereadores`, mediaVer ? curto(mediaVer) : "—"],
+            [`gabinetes do prefeito e do vice no Ceará em ${x.ano} (órgão inteiro, fora do total; só o Ceará tem esse dado)`, curto(x.gabinetes_registrado_ano || 0)]];
     const ate = (b) => b.bimestre && b.bimestre < 6 ? `, até ${["", "fev", "abr", "jun", "ago", "out", "dez"][b.bimestre]}` : "";
-    if (sics.length) partes = `<p class="partes"><span><b>Ceará</b> ${curto(x.registrado_ano)} · ${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades</span>${sics.map((b) => `<span><b>${N(b)}</b> ${curto(b.registrado_ano)} · ${nf(b.cobertura)} de ${nf(b.total_municipios)} cidades${ate(b)}</span>`).join("")}</p>`;
+    // a lista por estado (nomes + valores) foi retirada do cartão para deixá-lo limpo; o detalhe por estado fica na página das cidades
     const bm = sics.map((b) => b.bimestre).filter((v) => v && v < 6);
     if (sics.length) avisoBa = `<p class="aviso">${eLista(sics.map(N))}: dados do Tesouro Nacional (SICONFI), sem nota a nota nem gabinetes (só ${sics.length > 1 ? "os tribunais de contas desses estados têm, e o robô ainda não os lê" : "o tribunal de contas desse estado tem, e o robô ainda não o lê"}).${bm.length ? ` O valor de ${x.ano} é o empenhado até ${["", "fevereiro", "abril", "junho", "agosto", "outubro"][Math.min(...bm)]}${bm.length > 1 ? " ou depois" : ""}, que já fica perto do ano inteiro: as câmaras empenham a folha e os contratos do ano logo no começo.` : ""}</p>`;
     const dv = x.divergencias || {}, tit = (n) => String(n || "").toLowerCase().replace(/(^|\s)(\p{L})/gu, (m) => m.toUpperCase());
