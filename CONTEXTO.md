@@ -4,7 +4,7 @@
 "leia o CONTEXTO.md do repositório projetoquantocusta1-alt.github.io". Ele tem tudo para continuar sem reler
 conversas antigas. **Mantenha este arquivo atualizado** ao fim de cada mudança grande ou auditoria.
 
-Última atualização: 2026-11-22.
+Última atualização: 2026-11-23.
 
 ---
 
@@ -179,3 +179,6 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - **20/11 (tarde):** nova auditoria guardada em `robo/auditoria.py`; correção do CPF (ver §9); design: no hub, o texto
   longo das câmaras foi para "Como calculamos ▾"; nas prefeituras BA/PE/PB/RN o aviso do SICONFI virou uma linha que
   abre ao tocar.
+- **23/11:** conferido que o bug da validação "coleta incompleta" só afetou o **Maranhão** — nos outros 7 estados do
+  SICONFI (BA, PE, PB, RN, PI, AL, SE) o salto ano-a-ano das câmaras nunca passou do limite antigo, então nunca foram
+  barrados nem ficaram com número velho. Correção (pular SICONFI na validação) cobre todos daqui para frente.
