@@ -173,6 +173,18 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 11. Histórico recente (resumo)
 
+- **24/11 (madrugada, experiência do usuário — parte 2, pedida pelo dono):** a parte 1 (abaixo) foi **publicada na `main`** dos 15
+  repositórios do site (o `quanto-custa-educacao` não tem `main`; ficou só na branch de trabalho). Depois: (1) **barrinhas dos
+  cartões do hub** mostram o primeiro e o último ano embaixo; tocar (ou passar o mouse) numa barra mostra "ano: valor" (antes só
+  havia `title`, que não funciona no celular). (2) **"5 maiores notas"**: o texto "descrição — fornecedor" (gerado em
+  `robo/destaques.py`) é separado no navegador (`notaTxt` no `hub.js`): fornecedor em negrito, descrição embaixo, menor e sem caixa
+  alta. O robô não mudou. (3) **Índice, Sobre e Privacidade ganharam o mesmo menu do hub** (☰ no celular, "Políticos ▾", "Dívidas ▾",
+  Índice, Sobre, Privacidade; página atual sublinhada). Novo arquivo **`menu.js`** na raiz: monta o menu nas páginas com
+  `<nav id="menu" data-auto>` e cuida do ☰ e dos submenus **também no hub** (essa parte saiu do `hub.js`). **Mudou um link do
+  menu? Mudar no `index.html` do hub E no `menu.js`.** Essas páginas passaram de `hub.css?v=13` para `?v=18` (o 404 também).
+  (4) Menu: "Deputados estaduais — por enquanto, Ceará, Bahia e Rio Grande do Norte" (dizia só CE e BA). (5) **Sobre**: a frase do que o
+  site cobre dizia "só o Ceará"; agora lista tudo (federais, senadores, estaduais CE/BA/RN, prefeituras dos 9 estados, dívida,
+  devedores), e as fontes incluem Tesouro (SICONFI), Assembleias e PGFN. Versões: `hub.css?v=18`, `hub.js?v=28`, `menu.js?v=1`.
 - **24/11 (madrugada, experiência do usuário):** revisão das páginas no computador e no celular (renderização local, sem erros de JS
   nem rolagem lateral). Correções: (1) **"Projeto Quanto Custa" ainda aparecia nos sites** (rodapé, boas-vindas, contador de visitas,
   selo "PROJETO QUANTO CUSTA · BAHIA" dos 8 estados SICONFI, compartilhamento de cartão) — trocado por "Quanto Custa" em deputados,

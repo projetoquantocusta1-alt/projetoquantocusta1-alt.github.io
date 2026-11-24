@@ -15,14 +15,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://quantocustaum.com/hub.css?v=13">
+<link rel="stylesheet" href="https://quantocustaum.com/hub.css?v=18">
 <link rel="stylesheet" href="https://quantocustaum.com/marca/tokens.css?v=1">
 <link rel="stylesheet" href="https://quantocustaum.com/marca/marca.css?v=1">
 <style>.texto { max-width: 760px; margin: 0 auto; padding: 30px 16px 10px; } .texto h1 { text-align: left; font-size: 34px; } .texto h2 { font: 700 21px var(--serif); color: var(--marinho); margin: 26px 0 8px; } .texto p, .texto li { line-height: 1.6; }</style>
 </head>
 <body>
 <header class="topo"><div class="topo-in"><a class="marca" href="https://quantocustaum.com/"><img class="marca-logo" src="https://quantocustaum.com/marca/logo-horizontal-negativo.svg" alt="Quanto Custa?" width="164" height="30"></a>
-<nav class="volta" style="display:flex;margin-left:auto"><a href="https://quantocustaum.com/">← Início</a></nav></div></header>
+<button class="hamb" id="hamb" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu"><span></span><span></span><span></span></button>
+<nav id="menu" data-auto><a href="https://quantocustaum.com/">← Início</a></nav></div></header>
 <main class="texto">
 <h1>Privacidade e dados pessoais</h1>
 <p>Este site trata apenas <b>dados públicos</b>, divulgados pelos próprios órgãos oficiais, com a finalidade de transparência e controle social dos gastos públicos (Lei de Acesso à Informação, Lei 12.527/2011; LGPD, Lei 13.709/2018, art. 7º, incisos II e III, e art. 23, §1º, e o princípio da publicidade da Constituição, art. 37).</p>
@@ -66,5 +67,6 @@
   }).catch(function () {});
 })();
 </script>
+<script src="https://quantocustaum.com/menu.js?v=1"></script>
 </body>
 </html>

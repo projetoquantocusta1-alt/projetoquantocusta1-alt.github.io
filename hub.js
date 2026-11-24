@@ -79,11 +79,33 @@ function contador(T) {
   passo();
 }
 
+// nota: "descrição — fornecedor" → fornecedor em destaque, descrição embaixo (sem caixa alta)
+function semCaixaAlta(t) {
+  const letras = t.replace(/[^A-Za-zÀ-ÿ]/g, ""), maius = letras.replace(/[^A-ZÀ-Þ]/g, "").length;
+  return letras.length > 8 && maius / letras.length > 0.6 ? t.charAt(0) + t.slice(1).toLowerCase() : t;
+}
+function notaTxt(oque, url) {
+  const k = oque.lastIndexOf(" — "), forn = k >= 0 ? oque.slice(k + 3) : oque, desc = k >= 0 ? oque.slice(0, k).trim() : "";
+  return `<a class="forn" href="${esc(url)}">${esc(forn)}</a>${desc ? `<span class="desc">${esc(semCaixaAlta(desc))}</span>` : ""}`;
+}
+
+// barrinhas de cada ano: primeiro e último ano embaixo; tocar (ou passar o mouse) numa barra mostra o ano e o valor
+const BARRAS_DICA = "toque numa barra";
 function barras(hist) {
   const h = (hist || []).slice(-12), mx = Math.max(...h.map((x) => x[1]), 1);
-  return `<div class="barras" aria-hidden="true">${h.map(([a, v, completo]) =>
-    `<i class="${completo ? "" : "parcial"}" style="height:${Math.max(4, (v / mx) * 100)}%" title="${a}: ${brl(v)}${completo ? "" : " (parcial)"}"></i>`).join("")}</div>`;
+  if (!h.length) return "";
+  const rot = ([a, v, completo]) => `${a}: ${curto(v)}${completo ? "" : " (até agora)"}`;
+  return `<div class="barras-box"><div class="barras" role="img" aria-label="Custo por ano, em valores de hoje: ${esc(h.map(rot).join("; "))}">${h.map((x) =>
+    `<i class="${x[2] ? "" : "parcial"}" style="height:${Math.max(4, (x[1] / mx) * 100)}%" data-r="${esc(rot(x))}"></i>`).join("")}</div>
+    <div class="barras-anos" aria-hidden="true"><span>${h[0][0]}</span><span class="barras-leg">${BARRAS_DICA}</span><span>${h[h.length - 1][0]}</span></div></div>`;
 }
+function barrasMostra(i) {
+  const box = i?.closest(".barras-box"); if (!box) return;
+  box.querySelectorAll(".barras i.on").forEach((x) => x.classList.remove("on"));
+  i.classList.add("on"); box.querySelector(".barras-leg").textContent = i.dataset.r;
+}
+document.addEventListener("click", (e) => barrasMostra(e.target.closest?.(".barras i")));
+document.addEventListener("mouseover", (e) => barrasMostra(e.target.closest?.(".barras i")));
 
 // soma, ano a ano, dois históricos [ano, valor, completo] (só os anos que os dois têm)
 // soma as séries por ano; só ficam os anos presentes em todas
@@ -263,7 +285,7 @@ async function iniciarDestaques() {
   if (!D.ano) { $("#destaques").hidden = true; return; }
   const ns = D.notas_semana || [];
   $("#top-notas").innerHTML = ns.length ? ns.map(([e, v, oque, quem, onde, data, url, qtd]) =>
-    `<li><span class="o"><a href="${esc(url)}">${esc(oque)}</a><span class="q"><span class="etq" style="--c:${COR_ESF[e]}">${e}</span>${esc(quem)} · ${esc(onde)}${data ? " · " + dataCurta(data) : ""}${qtd > 1 ? ` · <b>${qtd} notas iguais</b> de ${brl(v / qtd, 2)}` : ""}</span></span><span class="v num">${brl(v, 2)}</span></li>`).join("")
+    `<li><span class="o">${notaTxt(oque, url)}<span class="q"><span class="etq" style="--c:${COR_ESF[e]}">${e}</span>${esc(quem)} · ${esc(onde)}${data ? " · " + dataCurta(data) : ""}${qtd > 1 ? ` · <b>${qtd} notas iguais</b> de ${brl(v / qtd, 2)}` : ""}</span></span><span class="v num">${brl(v, 2)}</span></li>`).join("")
     : `<li class="sub">Sem notas publicadas nos últimos dias.</li>`;
   const J = D.janelas || {}, rot = { deputados: "deputados", senadores: "senadores", municipios: "municípios" };
   const jt = Object.entries(J).map(([k, [a, b]]) => `${rot[k]} de ${dataCurta(a)} a ${dataCurta(b)}`);
@@ -384,20 +406,11 @@ $("#busca-q").addEventListener("keydown", (e) => {
   e.preventDefault(); let i = as.findIndex((a) => a.classList.contains("ativo")); as[i]?.classList.remove("ativo");
   i = (i + (e.key === "ArrowDown" ? 1 : -1) + as.length) % as.length; as[i].classList.add("ativo"); as[i].scrollIntoView({ block: "nearest" });
 });
-$("#hamb").onclick = () => { const m = $("#menu"), a = m.classList.toggle("aberto"); $("#hamb").setAttribute("aria-expanded", String(a)); };
-$("#menu").onclick = (e) => { if (e.target.tagName === "A") { $("#menu").classList.remove("aberto"); $("#hamb").setAttribute("aria-expanded", "false"); } };
 iniciar();
 iniciarEstados();
 iniciarDestaques();
 })();
 
-// menus "Políticos" e "Dívidas": no toque (sem mouse), o botão abre e fecha a lista
-["sub-pol", "sub-div"].forEach((id) => {
-  const sm = document.getElementById(id); if (!sm) return;
-  const b = sm.querySelector(".sub-bot");
-  b.addEventListener("click", (e) => { e.stopPropagation(); const a = sm.classList.toggle("aberto"); b.setAttribute("aria-expanded", String(a)); });
-  document.addEventListener("click", (e) => { if (!sm.contains(e.target)) { sm.classList.remove("aberto"); b.setAttribute("aria-expanded", "false"); } });
-});
 
 // "Como calculamos" fica recolhido; abre sozinho quando se chega por #metodo (menu "Metodologia" ou link)
 (function () {
