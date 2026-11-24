@@ -1,4 +1,4 @@
-/* Projeto Quanto Custa — hub. Só lê dados/totais_hub.json (feito pelo Mensageiro). */
+/* Quanto Custa — hub. Só lê dados/totais_hub.json (feito pelo Mensageiro). */
 (() => {
 "use strict";
 const $ = (s) => document.querySelector(s);

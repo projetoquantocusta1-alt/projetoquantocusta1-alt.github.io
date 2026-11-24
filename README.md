@@ -1,4 +1,4 @@
-# Projeto Quanto Custa — hub
+# Quanto Custa — hub
 
 Página de entrada do projeto: https://quantocustaum.com/
 

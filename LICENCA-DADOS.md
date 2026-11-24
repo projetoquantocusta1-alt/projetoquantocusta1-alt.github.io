@@ -1,6 +1,6 @@
 # Licença dos dados
 
-Os **dados compilados e publicados** pelo Projeto Quanto Custa (os arquivos em `dados/` e `docs/dados/`
+Os **dados compilados e publicados** pelo Quanto Custa (os arquivos em `dados/` e `docs/dados/`
 de cada repositório) são disponibilizados sob a licença **Creative Commons Atribuição 4.0 Internacional
 (CC BY 4.0)**: https://creativecommons.org/licenses/by/4.0/deed.pt-br
 
@@ -15,9 +15,9 @@ O **código** é licenciado à parte, sob a licença MIT (veja o arquivo `LICENS
 
 ## Como citar
 
-- **ABNT:** SOCIEDADE DO PROGRESSO. *Projeto Quanto Custa*. 2026. DOI: 10.5281/zenodo.24486227. Disponível em: https://doi.org/10.5281/zenodo.24486227. Acesso em: [dia mês ano].
+- **ABNT:** SOCIEDADE DO PROGRESSO. *Quanto Custa*. 2026. DOI: 10.5281/zenodo.24486227. Disponível em: https://doi.org/10.5281/zenodo.24486227. Acesso em: [dia mês ano].
 - **DOI (todas as versões):** https://doi.org/10.5281/zenodo.24486227
-- **Curta:** Projeto Quanto Custa (Sociedade do Progresso). quantocustaum.com, acesso em [data].
+- **Curta:** Quanto Custa (Sociedade do Progresso). quantocustaum.com, acesso em [data].
 
 Ao citar um número específico, indique a página (cidade, deputado ou senador) e a data do acesso, porque
 os dados são atualizados todos os dias.

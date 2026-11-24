@@ -192,7 +192,15 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   dos 8 estados do SICONFI). Adicionados **dados estruturados schema.org** no hub (Organization, WebSite e
   **Dataset** com o DOI e a licença CC BY — ajuda a aparecer no Google e na Busca de Conjuntos de Dados),
   `canonical` e og/twitter. `sitemap.xml` passou a incluir os deputados estaduais. **Pendência do dono (off-page):**
-  cadastrar o site no **Google Search Console** e enviar o sitemap (maior impacto para aparecer nas buscas). Também tirado "Projeto" do contador de visitas ("visitas ao Quanto Custa"). O nome FORMAL do projeto segue "Projeto Quanto Custa" no rodapé, na página Sobre, na citação/DOI e nas licenças (é a marca registrada do projeto); a marca de exibição é "Quanto Custa".
+  cadastrar o site no **Google Search Console** e enviar o sitemap (maior impacto para aparecer nas buscas). Também tirado "Projeto" do contador de visitas ("visitas ao Quanto Custa").
+- **24/11 (noite, depois):** **o nome passou a ser "Quanto Custa" em TUDO** (decisão do dono: "quero deixar tudo
+  Quanto Custa"). Tirado "Projeto" também do rodapé de todas as páginas, da página Sobre, da Privacidade, do 404, do
+  JSON-LD (removido o `alternateName`), do texto de fontes do Índice, do `README`, dos comentários do `hub.js`/`hub.css`
+  e — o mais importante — da **citação acadêmica e dos metadados do release**: `CITATION.cff` (title "Quanto Custa"),
+  `.zenodo.json` (title e descrição/ABNT), `LICENCA-DADOS.md`, `LICENSE` (copyright "Sociedade do Progresso — Quanto
+  Custa") e a seção "Como citar" do Sobre. **A autoria continua "Sociedade do Progresso".** Não existe mais o nome
+  "Projeto Quanto Custa" em lugar nenhum — é só "Quanto Custa". Para a ficha do Zenodo refletir o novo nome, o dono
+  precisa publicar uma **nova release** (ex.: v1.2); o concept DOI 10.5281/zenodo.24486227 não muda.
 - **24/11:** projeto virou **aberto + acadêmico de forma explícita**. Licenças: **código MIT** (arquivo `LICENSE`),
   **dados CC BY 4.0** (`LICENCA-DADOS.md`). Adicionados `CITATION.cff` e uma seção **"Como citar"** na página Sobre
   (ABNT + curta, com data de acesso). **DOI gerado (Zenodo): 10.5281/zenodo.24486227** (https://doi.org/10.5281/zenodo.24486227), release v1.0 do hub; já preenchido no `CITATION.cff`, na seção "Como citar" e no `LICENCA-DADOS.md`. Adicionado `.zenodo.json` (título, descrição, palavras-chave, licença) para a ficha do Zenodo ficar completa; **a ficha só se atualiza numa NOVA release** (o Zenodo lê o arquivo na hora da release). Concept DOI não muda; o site usa o concept DOI. Pendência: o arquivo `LICENSE` (MIT) ainda só está no hub; propagar aos outros repositórios.

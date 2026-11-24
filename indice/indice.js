@@ -171,7 +171,7 @@ async function iniciar() {
   lerEndereco();
   desenhar();
   const fontes = [...new Set(Object.values(S.d.fontes || {}))];
-  $("#atual").textContent = `Notas recalculadas em ${new Date(S.d.gerado_em).toLocaleString("pt-BR")}. Fontes: robôs do Projeto Quanto Custa, ${fontes.join(" e ")} e os portais das Assembleias.`;
+  $("#atual").textContent = `Notas recalculadas em ${new Date(S.d.gerado_em).toLocaleString("pt-BR")}. Fontes: robôs do Quanto Custa, ${fontes.join(" e ")} e os portais das Assembleias.`;
   document.querySelectorAll(".ix-aba").forEach((b) => (b.onclick = () => { S.aba = b.dataset.aba; S.sel = null; S.limite = 50; gravarEndereco(); desenhar(); }));
   $("#f-uf").onchange = (e) => { S.uf = e.target.value; S.sel = null; S.limite = 50; gravarEndereco(); desenhar(); };
   $("#lista").addEventListener("click", (e) => escolher(e.target.closest("tbody tr")?.dataset.id));

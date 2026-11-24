@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "Se você usar este projeto ou seus dados, por favor cite como abaixo."
-title: "Projeto Quanto Custa"
+title: "Quanto Custa"
 abstract: "Transparência de gasto público no Brasil: deputados federais, senadores, prefeituras e câmaras municipais e deputados estaduais, com dados oficiais atualizados diariamente e corrigidos pela inflação."
 type: dataset
 authors:
