@@ -15,7 +15,8 @@ O **código** é licenciado à parte, sob a licença MIT (veja o arquivo `LICENS
 
 ## Como citar
 
-- **ABNT:** SOCIEDADE DO PROGRESSO. *Projeto Quanto Custa*. 2026. Disponível em: https://quantocustaum.com. Acesso em: [dia mês ano].
+- **ABNT:** SOCIEDADE DO PROGRESSO. *Projeto Quanto Custa*. 2026. DOI: 10.5281/zenodo.24486227. Disponível em: https://doi.org/10.5281/zenodo.24486227. Acesso em: [dia mês ano].
+- **DOI (todas as versões):** https://doi.org/10.5281/zenodo.24486227
 - **Curta:** Projeto Quanto Custa (Sociedade do Progresso). quantocustaum.com, acesso em [data].
 
 Ao citar um número específico, indique a página (cidade, deputado ou senador) e a data do acesso, porque

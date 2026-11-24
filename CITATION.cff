@@ -9,3 +9,8 @@ url: "https://quantocustaum.com"
 repository-code: "https://github.com/projetoquantocusta1-alt/projetoquantocusta1-alt.github.io"
 license: MIT
 date-released: "2026-11-24"
+doi: "10.5281/zenodo.24486227"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24486227"
+    description: "DOI de todas as versões (Zenodo)"

@@ -189,6 +189,4 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   vereador dos estados e o aviso do SICONFI (mantido). Detalhe por estado continua na página das cidades (hub.js).
 - **24/11:** projeto virou **aberto + acadêmico de forma explícita**. Licenças: **código MIT** (arquivo `LICENSE`),
   **dados CC BY 4.0** (`LICENCA-DADOS.md`). Adicionados `CITATION.cff` e uma seção **"Como citar"** na página Sobre
-  (ABNT + curta, com data de acesso). **Falta o DOI** (Zenodo) — depende do dono conectar o Zenodo ao GitHub e fazer
-  uma release; quando sair, preencher o DOI no `CITATION.cff`, na seção "Como citar" (span `#doi-aviso`) e no
-  `LICENCA-DADOS.md`. Pendência: o arquivo `LICENSE` (MIT) ainda só está no hub; propagar aos outros repositórios.
+  (ABNT + curta, com data de acesso). **DOI gerado (Zenodo): 10.5281/zenodo.24486227** (https://doi.org/10.5281/zenodo.24486227), release v1.0 do hub; já preenchido no `CITATION.cff`, na seção "Como citar" e no `LICENCA-DADOS.md`. Pendência: o arquivo `LICENSE` (MIT) ainda só está no hub; propagar aos outros repositórios.
