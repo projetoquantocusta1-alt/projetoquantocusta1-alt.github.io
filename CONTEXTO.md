@@ -173,6 +173,21 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 11. Histórico recente (resumo)
 
+- **24/11 (noite, cruzamento):** aba **"Recebem dinheiro público"** na página dos devedores + quadro "Recebe dinheiro público?"
+  na ficha de cada empresa (ideia do dono). O robô dos devedores passou a rodar **toda semana** completo (PGFN ~20 min + cruzamento):
+  baixa por *sparse checkout* os fornecedores dos outros sites (deputados `docs/dados/*/fornecedores/`, senadores
+  `*/fornecedores.json`, estaduais `*/*/fornecedores.json`, municípios CE `docs/dados/f/`) e o zip de emendas do Portal da
+  Transparência (`EmendasParlamentares_PorFavorecido.csv`: CNPJ de quem recebeu, autor, mês, valor). Junta pela **raiz do CNPJ**
+  com TODOS os devedores da PGFN (não só os maiores). Fora do cruzamento: **órgãos e entes públicos** (prefeituras, estados,
+  fundos, INSS — regex `PUBLICO` em `coletor/cruzamento.py`) e, nas emendas, naturezas jurídicas públicas/economia mista (o
+  **Banco do Brasil e a Caixa só repassam** as emendas como agentes; sem o filtro, o BB aparecia com R$ 94 bi). Prefeituras do CE:
+  quem pagou = a prefeitura da pasta (não a cidade do fornecedor). Valores recebidos = da época, todos os anos de cada fonte.
+  Saída: `cruzamento.json` (as 2.500 maiores dívidas + as 2.500 que mais receberam) e `cruz/XX.json` (detalhe de todas, por raiz).
+  Texto sempre diz que **não indica irregularidade** (certidão positiva com efeito de negativa para parcelada/garantida/suspensa).
+  Resultado (3º tri/2026): **63.967** empresas devedoras recebem dinheiro público; devem R$ 510 bi (R$ 114 bi em cobrança) e
+  receberam R$ 86,8 bi (emendas R$ 17,3 bi, 11.904 empresas; prefeituras CE R$ 67,4 bi; cota deputados R$ 1,8 bi; senadores R$ 174 mi;
+  estaduais R$ 70 mi). `totais.emendas_por_natureza` no `cruzamento.json` mostra o que foi filtrado.
+  **Próximo passo combinado:** aviso "deve R$ X à União" na ficha de fornecedor dos sites de deputados e senadores; depois, contratos federais.
 - **24/11 (noite, depois):** **nova página "Devedores da União"** (`quanto-custa-devedores`, `/quanto-custa-devedores/`), mesmo
   visual. Fonte: dados abertos da **PGFN** (`dadosabertos.pgfn.gov.br/<AAAA>_trimestre_<NN>/`: `Dados_abertos_Sistema_SIDA.zip`
   1,4 GB, `Previdenciario.zip`, `FGTS.zip`; ~10 GB de CSV, 53,6 milhões de linhas; ";" latin-1). **Regras:** soma só
