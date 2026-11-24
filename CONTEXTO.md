@@ -187,6 +187,12 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - **23/11 (tarde):** cartão "Prefeitos e vereadores" do hub ficou mais limpo — removida a lista por estado (nomes +
   valores) e os 9 quadros "por vereador" por estado; ficam o total, a etiqueta "N estados", UM quadro com a média por
   vereador dos estados e o aviso do SICONFI (mantido). Detalhe por estado continua na página das cidades (hub.js).
+- **24/11 (noite):** **SEO + marca.** Tirado "Projeto" do título de TODAS as abas (hub: "Quanto Custa — quanto
+  custam os políticos do Brasil"; cada site "<descrição> — Quanto Custa", no HTML e no `document.title` do `uf.js`
+  dos 8 estados do SICONFI). Adicionados **dados estruturados schema.org** no hub (Organization, WebSite e
+  **Dataset** com o DOI e a licença CC BY — ajuda a aparecer no Google e na Busca de Conjuntos de Dados),
+  `canonical` e og/twitter. `sitemap.xml` passou a incluir os deputados estaduais. **Pendência do dono (off-page):**
+  cadastrar o site no **Google Search Console** e enviar o sitemap (maior impacto para aparecer nas buscas).
 - **24/11:** projeto virou **aberto + acadêmico de forma explícita**. Licenças: **código MIT** (arquivo `LICENSE`),
   **dados CC BY 4.0** (`LICENCA-DADOS.md`). Adicionados `CITATION.cff` e uma seção **"Como citar"** na página Sobre
   (ABNT + curta, com data de acesso). **DOI gerado (Zenodo): 10.5281/zenodo.24486227** (https://doi.org/10.5281/zenodo.24486227), release v1.0 do hub; já preenchido no `CITATION.cff`, na seção "Como citar" e no `LICENCA-DADOS.md`. Adicionado `.zenodo.json` (título, descrição, palavras-chave, licença) para a ficha do Zenodo ficar completa; **a ficha só se atualiza numa NOVA release** (o Zenodo lê o arquivo na hora da release). Concept DOI não muda; o site usa o concept DOI. Pendência: o arquivo `LICENSE` (MIT) ainda só está no hub; propagar aos outros repositórios.
