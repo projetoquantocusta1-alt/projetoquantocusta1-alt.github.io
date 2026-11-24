@@ -199,8 +199,9 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   e — o mais importante — da **citação acadêmica e dos metadados do release**: `CITATION.cff` (title "Quanto Custa"),
   `.zenodo.json` (title e descrição/ABNT), `LICENCA-DADOS.md`, `LICENSE` (copyright "Sociedade do Progresso — Quanto
   Custa") e a seção "Como citar" do Sobre. **A autoria continua "Sociedade do Progresso".** Não existe mais o nome
-  "Projeto Quanto Custa" em lugar nenhum — é só "Quanto Custa". Para a ficha do Zenodo refletir o novo nome, o dono
-  precisa publicar uma **nova release** (ex.: v1.2); o concept DOI 10.5281/zenodo.24486227 não muda.
+  "Projeto Quanto Custa" em lugar nenhum — é só "Quanto Custa". **Release `v1.2` publicada em 24/11** (o dono publicou),
+  então o Zenodo relê o `.zenodo.json` e a ficha passa a mostrar "Quanto Custa"; o concept DOI 10.5281/zenodo.24486227
+  não muda. Release: https://github.com/projetoquantocusta1-alt/projetoquantocusta1-alt.github.io/releases/tag/v1.2
 - **24/11:** projeto virou **aberto + acadêmico de forma explícita**. Licenças: **código MIT** (arquivo `LICENSE`),
   **dados CC BY 4.0** (`LICENCA-DADOS.md`). Adicionados `CITATION.cff` e uma seção **"Como citar"** na página Sobre
   (ABNT + curta, com data de acesso). **DOI gerado (Zenodo): 10.5281/zenodo.24486227** (https://doi.org/10.5281/zenodo.24486227), release v1.0 do hub; já preenchido no `CITATION.cff`, na seção "Como citar" e no `LICENCA-DADOS.md`. Adicionado `.zenodo.json` (título, descrição, palavras-chave, licença) para a ficha do Zenodo ficar completa; **a ficha só se atualiza numa NOVA release** (o Zenodo lê o arquivo na hora da release). Concept DOI não muda; o site usa o concept DOI. Pendência: o arquivo `LICENSE` (MIT) ainda só está no hub; propagar aos outros repositórios.
