@@ -171,6 +171,9 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 11. Histórico recente (resumo)
 
+- **24/11 (fim da tarde):** menu do hub: **Deputados (federais/estaduais), Senadores e Prefeitos e vereadores viraram uma só aba,
+  "Políticos"** (submenu `#sub-pol`, mesmo funcionamento do antigo "Deputados"; no celular aparece o rótulo "POLÍTICOS" com os 4 itens).
+  O menu voltou a caber em uma linha no computador. `hub.css`/`hub.js` com `?v` novo.
 - **24/11 (tarde):** **nova página "Quanto Custa a Dívida Pública"** (`quanto-custa-divida`, endereço `/quanto-custa-divida/`), no mesmo
   visual dos outros sites. Robô `atualizar.py` (diário, 13:17 UTC) gera `docs/dados/divida.json` (~100 KB), `bancos.json` (~250 KB, só
   abre na aba Bancos) e `meta.json`. Fontes, todas do **Banco Central**: séries do SGS (dívida bruta 13761/13762, dívida líquida
