@@ -26,10 +26,11 @@ O dono **não é programador**: responder sempre em **português simples**. Publ
 | `quanto-custa-municipios` | **Página única das prefeituras** (seletor de estado) + Ceará | TCE-CE (nota a nota) |
 | `quanto-custa-municipios-ba`/`-pe`/`-pb`/`-rn`/`-ma`/`-pi`/`-al`/`-se` | Prefeituras por estado (Nordeste completo) | **SICONFI / Tesouro Nacional** |
 | `quanto-custa-deputados-estaduais` | Deputados estaduais: CE (Alece), BA (ALBA), RN (ALRN) | portais das Assembleias |
+| `quanto-custa-divida` | **Dívida pública** (dívida, juros, vencimentos, previsão, bancos) | **Banco Central** (SGS, Demab, Focus, IF.data) |
 | `quanto-custa-nucleo` | núcleo comum | — |
 
 **Endereços:** `/` (hub), `/indice/`, `/quanto-custa-deputados/`, `/quanto-custa-senadores/`,
-`/quanto-custa-municipios/` (+`?uf=ba|pe|pb|rn`), `/quanto-custa-deputados-estaduais/` (+`?uf=ba|rn`).
+`/quanto-custa-municipios/` (+`?uf=ba|pe|pb|rn`), `/quanto-custa-deputados-estaduais/` (+`?uf=ba|rn`), `/quanto-custa-divida/`.
 
 ## 3. Regras do projeto (valem para tudo; detalhe em PLANO.md)
 
@@ -101,6 +102,7 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   `run_workflow` com `{"uf":"rn"}`.
 - **Prefeituras** (cada `-ba/-pe/-pb/-rn`) `atualizar.yml`: de madrugada + semanal domingo (TSE/IBGE/IPCA).
 - **Senadores** `sondagem.yml`: só manual (ver §6).
+- **Dívida pública** `atualizar.yml`: 13:17 (todo dia; o Banco Central atualiza as séries uma vez por mês e o IF.data a cada trimestre).
 
 ## 8. Convenções de trabalho (como o Claude deve agir)
 
@@ -169,6 +171,21 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 11. Histórico recente (resumo)
 
+- **24/11 (tarde):** **nova página "Quanto Custa a Dívida Pública"** (`quanto-custa-divida`, endereço `/quanto-custa-divida/`), no mesmo
+  visual dos outros sites. Robô `atualizar.py` (diário, 13:17 UTC) gera `docs/dados/divida.json` (~100 KB), `bancos.json` (~250 KB, só
+  abre na aba Bancos) e `meta.json`. Fontes, todas do **Banco Central**: séries do SGS (dívida bruta 13761/13762, dívida líquida
+  4478/4513 e por esfera, juros nominais 4616 e por esfera, primário 4649, nominal 4583, PIB 12 meses 4382, Selic 4189/432, IPCA 433,
+  dívida mobiliária 4151/4152/4154, prazo médio 10618, indexadores 4173–4180/12001), cronograma de vencimentos (Demab), Focus e
+  IF.data (balanço de cada banco/financeira). Abas: Início (dívida "agora" em tempo real = último dado oficial + ritmo médio de 12
+  meses, marcado como estimativa; juros por segundo), Evolução, Juros, Composição, Vencimentos, Previsão (projeção simples com faixa
+  de 90% + Focus), Bancos, O que dava pra fazer (juros de 12 meses) e Metodologia. **Decisão do dono:** "ranking com aviso" — não
+  existe dado público de quanto o governo deve a cada empresa (sigilo bancário; o Tesouro só publica por grupo de detentor e o
+  **Tesouro Transparente recusa os robôs**, inclusive os do GitHub). O ranking usa a carteira de títulos e valores mobiliários do
+  IF.data (inclui títulos privados → é um teto), a renda com títulos declarada (12 meses = 2 semestres; o IF.data acumula jan–jun e
+  jul–dez, e mar/set são só do trimestre) e uma coluna de juros estimados (carteira × custo médio da dívida), sempre marcada.
+  IF.data vem em **reais** (não em mil). IBGE (população) não respondeu ao robô → usa a estimativa oficial de 1º/7/2025.
+  Hub: link "Dívida pública" no menu e no sitemap. **Pendente do dono:** ligar o GitHub Pages do repositório novo (Settings → Pages →
+  branch `main`, pasta `/docs`).
 - **17/11:** og.png novo; Índice de Governança (prévia) publicado; lista "Quem não prestou contas" com abas por estado
   e botão "mostrar mais"; Pernambuco e Paraíba (prefeituras) entram; código das prefeituras virou genérico por estado.
 - **18/11:** Rio Grande do Norte — deputados estaduais (ALRN, token lido do site) e prefeituras (SICONFI) publicados;
