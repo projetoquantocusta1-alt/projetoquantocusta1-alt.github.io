@@ -27,10 +27,11 @@ O dono **não é programador**: responder sempre em **português simples**. Publ
 | `quanto-custa-municipios-ba`/`-pe`/`-pb`/`-rn`/`-ma`/`-pi`/`-al`/`-se` | Prefeituras por estado (Nordeste completo) | **SICONFI / Tesouro Nacional** |
 | `quanto-custa-deputados-estaduais` | Deputados estaduais: CE (Alece), BA (ALBA), RN (ALRN) | portais das Assembleias |
 | `quanto-custa-divida` | **Dívida pública** (dívida, juros, vencimentos, previsão, bancos) | **Banco Central** (SGS, Demab, Focus, IF.data) |
+| `quanto-custa-devedores` | **Devedores da União** (Dívida Ativa: empresas, estados, tipos, situação) | **PGFN** (dados abertos, trimestral) |
 | `quanto-custa-nucleo` | núcleo comum | — |
 
 **Endereços:** `/` (hub), `/indice/`, `/quanto-custa-deputados/`, `/quanto-custa-senadores/`,
-`/quanto-custa-municipios/` (+`?uf=ba|pe|pb|rn`), `/quanto-custa-deputados-estaduais/` (+`?uf=ba|rn`), `/quanto-custa-divida/`.
+`/quanto-custa-municipios/` (+`?uf=ba|pe|pb|rn`), `/quanto-custa-deputados-estaduais/` (+`?uf=ba|rn`), `/quanto-custa-divida/`, `/quanto-custa-devedores/`.
 
 ## 3. Regras do projeto (valem para tudo; detalhe em PLANO.md)
 
@@ -102,6 +103,7 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   `run_workflow` com `{"uf":"rn"}`.
 - **Prefeituras** (cada `-ba/-pe/-pb/-rn`) `atualizar.yml`: de madrugada + semanal domingo (TSE/IBGE/IPCA).
 - **Senadores** `sondagem.yml`: só manual (ver §6).
+- **Devedores** `atualizar.yml`: segunda 14:41 (só refaz quando a PGFN publica trimestre novo; input `forcar=sim`). Leva ~20 min (10 GB).
 - **Dívida pública** `atualizar.yml`: 13:17 (todo dia; o Banco Central atualiza as séries uma vez por mês e o IF.data a cada trimestre).
 
 ## 8. Convenções de trabalho (como o Claude deve agir)
@@ -171,6 +173,18 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 11. Histórico recente (resumo)
 
+- **24/11 (noite, depois):** **nova página "Devedores da União"** (`quanto-custa-devedores`, `/quanto-custa-devedores/`), mesmo
+  visual. Fonte: dados abertos da **PGFN** (`dadosabertos.pgfn.gov.br/<AAAA>_trimestre_<NN>/`: `Dados_abertos_Sistema_SIDA.zip`
+  1,4 GB, `Previdenciario.zip`, `FGTS.zip`; ~10 GB de CSV, 53,6 milhões de linhas; ";" latin-1). **Regras:** soma só
+  `TIPO_DEVEDOR=PRINCIPAL` (corresponsáveis repetem o valor da mesma inscrição); empresas pela **raiz do CNPJ** (matriz+filiais);
+  **pessoas físicas só nos totais** (decisão do dono, LGPD); CPF já vem mascarado; nome de MEI passa pelo mascarador. Situação
+  agrupada: Em cobrança / Parcelada ou negociada (Benefício Fiscal, Em negociação) / Garantia / Suspensa por decisão judicial. Não há
+  município nos arquivos (só UF) → sem ranking por cidade. Números do 3º tri/2026: total **R$ 3,57 tri** (36,3 mi inscrições), empresas
+  R$ 3,38 tri, PF R$ 190 bi, em cobrança R$ 2,29 tri, 7,04 mi empresas devedoras; maior: Petrobras R$ 90,2 bi. Arquivos: `resumo.json`
+  (5 KB gz, inclui os 10 maiores), `empresas.json` (3.000 maiores, só abre na aba Empresas), `estados.json` (60 maiores por UF).
+  Hub: as abas "Dívida pública" e "Devedores da União" foram juntas no submenu **"Dívidas"** (`#sub-div`). **Pendente do dono:**
+  ligar o GitHub Pages do repositório novo (branch `main`, pasta `/docs`). **Ideia para depois:** setor de cada empresa (CNAE) com o
+  cadastro da Receita, como já é feito nos fornecedores dos deputados.
 - **24/11 (noite):** página da dívida posta **no padrão visual dos outros sites** (pedido do dono): menu com 7 itens e grupo
   "A dívida ▾" (Composição, Vencimentos, Previsão), como os grupos dos deputados; "Dados atualizados em …" curto; topo com os
   quadrinhos `.contador-linha` (juros em 12 meses, por segundo, por dia, quanto a dívida cresce por dia), como nos deputados; 4

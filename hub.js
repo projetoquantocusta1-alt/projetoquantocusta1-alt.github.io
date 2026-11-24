@@ -391,10 +391,10 @@ iniciarEstados();
 iniciarDestaques();
 })();
 
-// menu "Políticos": no toque (sem mouse), o botão abre e fecha a lista
-(() => {
-  const sm = document.getElementById("sub-pol"); if (!sm) return;
+// menus "Políticos" e "Dívidas": no toque (sem mouse), o botão abre e fecha a lista
+["sub-pol", "sub-div"].forEach((id) => {
+  const sm = document.getElementById(id); if (!sm) return;
   const b = sm.querySelector(".sub-bot");
   b.addEventListener("click", (e) => { e.stopPropagation(); const a = sm.classList.toggle("aberto"); b.setAttribute("aria-expanded", String(a)); });
   document.addEventListener("click", (e) => { if (!sm.contains(e.target)) { sm.classList.remove("aberto"); b.setAttribute("aria-expanded", "false"); } });
-})();
+});
