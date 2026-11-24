@@ -4,7 +4,7 @@
 "leia o CONTEXTO.md do repositório projetoquantocusta1-alt.github.io". Ele tem tudo para continuar sem reler
 conversas antigas. **REGRA: toda e qualquer mudança (código, dados, layout, regra, auditoria) é registrada aqui**, no histórico (§11), no mesmo passo em que é publicada no GitHub. Sem exceção.
 
-Última atualização: 2026-11-23.
+Última atualização: 2026-11-24.
 
 ---
 
@@ -187,3 +187,8 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - **23/11 (tarde):** cartão "Prefeitos e vereadores" do hub ficou mais limpo — removida a lista por estado (nomes +
   valores) e os 9 quadros "por vereador" por estado; ficam o total, a etiqueta "N estados", UM quadro com a média por
   vereador dos estados e o aviso do SICONFI (mantido). Detalhe por estado continua na página das cidades (hub.js).
+- **24/11:** projeto virou **aberto + acadêmico de forma explícita**. Licenças: **código MIT** (arquivo `LICENSE`),
+  **dados CC BY 4.0** (`LICENCA-DADOS.md`). Adicionados `CITATION.cff` e uma seção **"Como citar"** na página Sobre
+  (ABNT + curta, com data de acesso). **Falta o DOI** (Zenodo) — depende do dono conectar o Zenodo ao GitHub e fazer
+  uma release; quando sair, preencher o DOI no `CITATION.cff`, na seção "Como citar" (span `#doi-aviso`) e no
+  `LICENCA-DADOS.md`. Pendência: o arquivo `LICENSE` (MIT) ainda só está no hub; propagar aos outros repositórios.
