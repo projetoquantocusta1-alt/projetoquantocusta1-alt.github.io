@@ -184,8 +184,8 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   IF.data (inclui títulos privados → é um teto), a renda com títulos declarada (12 meses = 2 semestres; o IF.data acumula jan–jun e
   jul–dez, e mar/set são só do trimestre) e uma coluna de juros estimados (carteira × custo médio da dívida), sempre marcada.
   IF.data vem em **reais** (não em mil). IBGE (população) não respondeu ao robô → usa a estimativa oficial de 1º/7/2025.
-  Hub: link "Dívida pública" no menu e no sitemap. **Pendente do dono:** ligar o GitHub Pages do repositório novo (Settings → Pages →
-  branch `main`, pasta `/docs`).
+  Hub: link "Dívida pública" no menu e no sitemap. GitHub Pages ligado pelo dono (branch `main`, pasta `/docs`); página no ar,
+  conferida pelos runners em 24/11.
 - **17/11:** og.png novo; Índice de Governança (prévia) publicado; lista "Quem não prestou contas" com abas por estado
   e botão "mostrar mais"; Pernambuco e Paraíba (prefeituras) entram; código das prefeituras virou genérico por estado.
 - **18/11:** Rio Grande do Norte — deputados estaduais (ALRN, token lido do site) e prefeituras (SICONFI) publicados;
