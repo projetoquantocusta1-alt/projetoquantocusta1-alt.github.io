@@ -171,6 +171,10 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 11. Histórico recente (resumo)
 
+- **24/11 (noite):** página da dívida posta **no padrão visual dos outros sites** (pedido do dono): menu com 7 itens e grupo
+  "A dívida ▾" (Composição, Vencimentos, Previsão), como os grupos dos deputados; "Dados atualizados em …" curto; topo com os
+  quadrinhos `.contador-linha` (juros em 12 meses, por segundo, por dia, quanto a dívida cresce por dia), como nos deputados; 4
+  indicadores no início; "O que dava pra fazer?" com 4 cartões (números grandes abreviados, ex.: "129,2 mi").
 - **24/11 (fim da tarde):** menu do hub: **Deputados (federais/estaduais), Senadores e Prefeitos e vereadores viraram uma só aba,
   "Políticos"** (submenu `#sub-pol`, mesmo funcionamento do antigo "Deputados"; no celular aparece o rótulo "POLÍTICOS" com os 4 itens).
   O menu voltou a caber em uma linha no computador. `hub.css`/`hub.js` com `?v` novo.
