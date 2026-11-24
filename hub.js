@@ -398,3 +398,12 @@ iniciarDestaques();
   b.addEventListener("click", (e) => { e.stopPropagation(); const a = sm.classList.toggle("aberto"); b.setAttribute("aria-expanded", String(a)); });
   document.addEventListener("click", (e) => { if (!sm.contains(e.target)) { sm.classList.remove("aberto"); b.setAttribute("aria-expanded", "false"); } });
 });
+
+// "Como calculamos" fica recolhido; abre sozinho quando se chega por #metodo (menu "Metodologia" ou link)
+(function () {
+  const box = document.getElementById("metodo-box"); if (!box) return;
+  const abrir = () => { if (location.hash === "#metodo") box.open = true; };
+  abrir(); window.addEventListener("hashchange", abrir);
+  document.addEventListener("click", (e) => { const a = e.target.closest && e.target.closest('a[href$="#metodo"]');
+    if (a && a.getAttribute("href").replace(/^.*#/, "#") === "#metodo" && a.pathname === location.pathname) box.open = true; });
+})();

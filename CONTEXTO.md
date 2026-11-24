@@ -173,6 +173,16 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 
 ## 11. Histórico recente (resumo)
 
+- **24/11 (madrugada, experiência do usuário):** revisão das páginas no computador e no celular (renderização local, sem erros de JS
+  nem rolagem lateral). Correções: (1) **"Projeto Quanto Custa" ainda aparecia nos sites** (rodapé, boas-vindas, contador de visitas,
+  selo "PROJETO QUANTO CUSTA · BAHIA" dos 8 estados SICONFI, compartilhamento de cartão) — trocado por "Quanto Custa" em deputados,
+  senadores, municípios (CE + 8 estados), deputados estaduais, núcleo e educação; `?v` subidos. (2) Hub: **"Como calculamos" ficou
+  recolhível** (abre ao tocar, e sozinho quando se chega por `#metodo` / menu "Metodologia") e foi **atualizado**: falava só do Ceará;
+  agora explica as câmaras dos 8 estados do SICONFI, que o painel do mapa mostra câmaras nos 9 estados, e por que o contador das
+  câmaras (pago/liquidado) pode ficar um pouco abaixo do "registrado" dos cartões (ex.: 7,76 bi x 7,79 bi). Mesma explicação curta
+  embaixo do contador. (3) Hub no celular: "Quem não prestou contas" e "5 maiores notas" sem coluna apertada (etiqueta em cima, nomes
+  na largura toda; valor abaixo do texto); página inicial ~15% mais curta. (4) Cartões do rodapé do hub com seta (indicam que são
+  links). (5) Busca dos deputados: texto do campo "Nome do deputado" (antes cortava no celular).
 - **24/11 (noite, cruzamento):** aba **"Recebem dinheiro público"** na página dos devedores + quadro "Recebe dinheiro público?"
   na ficha de cada empresa (ideia do dono). O robô dos devedores passou a rodar **toda semana** completo (PGFN ~20 min + cruzamento):
   baixa por *sparse checkout* os fornecedores dos outros sites (deputados `docs/dados/*/fornecedores/`, senadores

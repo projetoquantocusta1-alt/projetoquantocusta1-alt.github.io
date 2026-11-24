@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="hub.css?v=16">
+<link rel="stylesheet" href="hub.css?v=17">
 <link rel="stylesheet" href="https://quantocustaum.com/marca/tokens.css?v=1">
 <link rel="stylesheet" href="https://quantocustaum.com/marca/marca.css?v=1">
 <script type="application/ld+json">
@@ -82,7 +82,7 @@
       <p class="cont-rot" id="cont-mun-rot">E com as <b>câmaras municipais do Ceará</b> (184 cidades) em <span class="ano">—</span></p>
       <div class="contador2 num" id="contador-mun">—</div>
       <p class="extenso" id="contador-mun-ext"></p>
-      <p class="cont-nota" id="cont-mun-resumo">Câmaras inteiras: vereadores, servidores e despesas.</p>
+      <p class="cont-nota" id="cont-mun-resumo">Câmaras inteiras: vereadores, servidores e despesas · conta o que já foi pago (ou liquidado).</p>
       <details class="cont-mais"><summary>Como calculamos</summary><p class="cont-nota" id="cont-mun-nota"></p></details>
     </div>
   </section>
@@ -140,25 +140,28 @@
   </section>
 
   <section class="largura rodape-cartoes">
-    <a class="mini" href="#esferas"><b>Comparar esferas</b><span>Quanto custa, por ano, um deputado federal, um senador e uma câmara municipal do Ceará.</span></a>
-    <a class="mini" href="https://quantocustaum.com/quanto-custa-deputados/?pag=novas"><b>Novas notas</b><span>O que entrou nos últimos dias na cota dos deputados, com alertas de fornecedor recém-aberto ou acima do limite do MEI.</span></a>
-    <a class="mini" href="sobre/"><b>Sobre o projeto</b><span>Quem somos (sem nomes, por segurança), como pedir uma correção e como tratamos dados pessoais.</span></a>
+    <a class="mini" href="#esferas"><b>Comparar esferas <i aria-hidden="true">→</i></b><span>Quanto custa, por ano, um deputado federal, um senador e uma câmara municipal do Ceará.</span></a>
+    <a class="mini" href="https://quantocustaum.com/quanto-custa-deputados/?pag=novas"><b>Novas notas <i aria-hidden="true">→</i></b><span>O que entrou nos últimos dias na cota dos deputados, com alertas de fornecedor recém-aberto ou acima do limite do MEI.</span></a>
+    <a class="mini" href="sobre/"><b>Sobre o projeto <i aria-hidden="true">→</i></b><span>Quem somos (sem nomes, por segurança), como pedir uma correção e como tratamos dados pessoais.</span></a>
   </section>
 
   <section class="largura metodo" id="metodo">
-    <h2 class="sec">Como calculamos</h2>
+    <details class="metodo-box" id="metodo-box">
+    <summary><h2 class="sec">Como calculamos</h2><span class="metodo-dica">fontes, contas e limites dos dados</span></summary>
     <ul>
       <li><b>Deputados federais</b>: salário, ajudas de custo, auxílio-moradia, cota parlamentar (CEAP) e verba de gabinete, com dados da Câmara dos Deputados.</li>
       <li><b>Senadores</b>: salário e cota parlamentar (CEAPS), com dados do Senado Federal. É um piso: a equipe do gabinete ainda não entra.</li>
       <li><b>Câmaras municipais do Ceará</b>: despesa realizada (empenhado menos anulações) da câmara inteira — salário dos vereadores, servidores e despesas da casa —, com dados do TCE-CE, conferida nota a nota contra o balancete. "Por vereador" é o custo da câmara inteira dividido pelo número de vereadores eleitos.</li>
+      <li><b>Câmaras municipais dos outros estados do Nordeste</b> (Bahia, Pernambuco, Paraíba, Rio Grande do Norte, Maranhão, Piauí, Alagoas e Sergipe): despesa da função "Legislativa" no relatório que cada prefeitura entrega ao Tesouro Nacional (SICONFI), a cada dois meses. Esse relatório traz só totais por área: não tem nota a nota, fornecedores nem gabinetes. Cidades que não entregaram o relatório ficam de fora da soma e aparecem na lista "Quem não prestou contas".</li>
       <li><b>Gabinete do prefeito e do vice</b>: no TCE-CE são órgãos inteiros da prefeitura, que costumam incluir comunicação, cerimonial, procuradoria, assessorias e programas. Não são o custo do prefeito; por isso ficam fora do contador e aparecem numa linha própria. O salário individual do prefeito, do vice e dos vereadores não vem nos dados do TCE (a folha chega em lote, sem nomes).</li>
-      <li><b>Contadores do ano</b>: o principal soma deputados federais e senadores; o das câmaras do Ceará é separado. Os dois somam o que já foi registrado e avançam no ritmo de gasto do próprio ano até 31 de dezembro (estimativa). Nos cartões e no mapa aparece só o valor já registrado.</li>
+      <li><b>Contadores do ano</b>: o principal soma deputados federais e senadores; o das câmaras municipais é separado. Os dois avançam no ritmo de gasto do próprio ano até 31 de dezembro (estimativa). O das câmaras parte do que já foi <b>pago</b> (Ceará) ou <b>liquidado</b> (Tesouro), por isso pode ficar um pouco abaixo do valor <b>registrado</b> (empenhado) que aparece nos cartões e no mapa.</li>
       <li><b>Conferências antes de publicar</b>: o robô do hub não publica uma esfera enquanto o robô dela estiver rodando, se o número de vereadores não bater com a fonte ou se algum ano cair pela metade (sinal de coleta incompleta); nesses casos, mantém o último número bom.</li>
-      <li><b>Mapa</b>: custo médio de um deputado federal ou senador do estado por mês, no ano em andamento (soma dos custos ÷ soma dos meses em exercício). Os municípios entram no painel do estado só no Ceará, por enquanto.</li>
+      <li><b>Mapa</b>: custo médio de um deputado federal ou senador do estado por mês, no ano em andamento (soma dos custos ÷ soma dos meses em exercício). As câmaras municipais entram no painel dos 9 estados do Nordeste; gabinetes e emendas, só no Ceará.</li>
       <li><b>Notas da semana</b>: em cada esfera, as notas emitidas nos 7 dias que terminam na nota mais recente já publicada (Câmara, Senado e TCE-CE publicam com atrasos diferentes). Folha de pessoal das prefeituras não entra. Valor de cada nota como publicado (sem correção).</li>
       <li><b>Fornecedores em mais de uma esfera</b>: empresas agrupadas pela raiz do CNPJ (8 primeiros dígitos, que junta matriz e filiais), com o que cada esfera pagou no ano.</li>
       <li><b>Barrinhas dos cartões</b>: custo de cada ano em valores de hoje, corrigidos pelo IPCA (Banco Central). A última barra, mais clara, é o ano em andamento.</li>
     </ul>
+    </details>
     <p class="sub" id="atualizacao"></p>
   </section>
 </main>
@@ -169,7 +172,7 @@
 
 <script src="vendor/mapa-brasil.js"></script>
 <script src="referencias.js?v=1"></script>
-<script src="hub.js?v=26"></script>
+<script src="hub.js?v=27"></script>
 <!-- contador de visitas sem cookies e sem dados pessoais (GoatCounter) -->
 <script data-goatcounter="https://quantocustaum.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <script>/* número de visitas: selo no topo (ou no rodapé, se a página não tiver selo); some se o GoatCounter não responder */
