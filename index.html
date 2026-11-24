@@ -57,7 +57,7 @@
 
 <main>
   <section class="hero">
-    <div class="visitas-linha" data-visitas hidden><span class="visitas"><span class="vis-ponto" aria-hidden="true"></span><b></b> visitas ao Projeto Quanto Custa</span></div>
+    <div class="visitas-linha" data-visitas hidden><span class="visitas"><span class="vis-ponto" aria-hidden="true"></span><b></b> visitas ao Quanto Custa</span></div>
     <p class="selo">Transparência independente · dados oficiais · atualizado todo dia</p>
     <h1>Quanto custam os políticos do Brasil?</h1>
     <p class="sub-hero">Deputados, senadores, prefeitos e vereadores em um só lugar: salário, cota, gabinete e cada nota fiscal — com valores corrigidos pela inflação.</p>
@@ -174,7 +174,7 @@
     var alvo = document.querySelector("[data-visitas]");
     if (alvo) {
       var b = alvo.querySelector("b"); alvo.hidden = false;
-      alvo.querySelector(".visitas").lastChild.textContent = n === 1 ? " visita ao Projeto Quanto Custa" : " visitas ao Projeto Quanto Custa";
+      alvo.querySelector(".visitas").lastChild.textContent = n === 1 ? " visita ao Quanto Custa" : " visitas ao Quanto Custa";
       if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { b.textContent = fmt(n); return; }
       var t0 = null, dur = 1200;
       (function passo(t) { if (!t0) t0 = t; var k = Math.min(1, (t - t0) / dur); b.textContent = fmt(Math.round(n * (1 - Math.pow(1 - k, 3)))); if (k < 1) requestAnimationFrame(passo); })(performance.now());
