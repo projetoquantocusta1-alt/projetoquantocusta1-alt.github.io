@@ -4,7 +4,7 @@
 "leia o CONTEXTO.md do repositório projetoquantocusta1-alt.github.io". Ele tem tudo para continuar sem reler
 conversas antigas. **REGRA: toda e qualquer mudança (código, dados, layout, regra, auditoria) é registrada aqui**, no histórico (§11), no mesmo passo em que é publicada no GitHub. Sem exceção.
 
-Última atualização: 2026-11-24.
+Última atualização: 2026-11-25.
 
 ---
 
@@ -124,7 +124,12 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - Ao mudar um arquivo servido (js/css), **subir o `?v=N`** nos HTML que o referenciam (cache).
 - `git reset --hard` costuma ser bloqueado pelo modo automático — usar `git merge --ff-only FETCH_HEAD`.
 
-## 9. Estado atual (2026-11-21, depois da auditoria)
+## 9. Estado atual (2026-11-25, depois da auditoria)
+
+- **Auditoria de 25/11:** robôs ok (deputados, senadores, municípios CE + 8 estados e estaduais gravaram em 25/11; dívida e
+  devedores em 24/11, como previsto); 114 testes ok; `robo/auditoria.py` com os dados de hoje: 111 ok / 0 erros / 30 informativos
+  (os 2 "erros" da primeira passada eram só o hub de ontem 22h vs. dados novos da manhã; o Mensageiro das 11:47 resolve); nenhum
+  CPF inteiro; 20 páginas sem erro de JS e sem rolagem lateral no computador e no celular. Achados e correções: ver §11 (25/11).
 
 - **No ar:** deputados federais, senadores, prefeituras de **todo o Nordeste (9: CE, BA, PE, PB, RN, MA, PI, AL, SE)**, deputados estaduais **CE/BA/RN**,
   Índice de Governança (prévia). Pages ligado em todos.
@@ -172,6 +177,19 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - Pendência antiga (CE prefeituras): gabinete do prefeito, população, fornecedores (itens "A3/A6/A8").
 
 ## 11. Histórico recente (resumo)
+
+- **25/11 (auditoria de sempre + experiência do usuário):** (1) **Dívida pública: "Valores de hoje" corrigia só até set/2026**
+  (os outros sites usam 10/2026): a tabela mensal termina no último mês da dívida, e o IPCA de outubro ficava de fora. O robô
+  agora grava `mensal.ipca_extra` (IPCA dos meses depois do último dado da dívida) e o `app.js` usa esses meses na correção
+  (`app.js?v=4`). Passa a valer na próxima rodada do robô (13:17 UTC). (2) **Topo de Deputados e Senadores: "Dados atualizados
+  em 25/11/202…" saía cortado** no computador (1366 px). O texto agora quebra em duas linhas curtas à direita (`tema.css`,
+  idêntico em deputados, senadores, estaduais, dívida e devedores; `?v` subidos); senadores e estaduais sem os segundos na hora.
+  (3) **Deputados: dois números diferentes para "2026" lado a lado** (contador R$ 1,05 bi — estimativa em tempo real — e
+  "Custo total R$ 991,91 mi"): os quadros agora dizem "registrado em 2026 até out" (custo, por cadeira e cota; `app.js?v=26`).
+  (4) **Hub: cartões de Deputados e Senadores mostravam o valor de 2026 sem correção** (R$ 979 mi e R$ 66,6 mi) enquanto a barra
+  do mesmo cartão e os sites mostram em valores de hoje (R$ 992 mi e R$ 67,5 mi). O cartão passou a usar o valor da barra
+  (`hub.js?v=29`; o Mensageiro não mudou; o cartão das prefeituras continua igual ao mapa, de propósito). (5) Senadores: "R$ 84,48 mi"
+  da previsão não se parte mais em duas linhas.
 
 - **24/11 (madrugada, experiência do usuário — parte 2, pedida pelo dono):** a parte 1 (abaixo) foi **publicada na `main`** dos 15
   repositórios do site (o `quanto-custa-educacao` não tem `main`; ficou só na branch de trabalho). Depois: (1) **barrinhas dos

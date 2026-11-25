@@ -180,7 +180,7 @@ function cartao(id, x, T) {
   }
   // municípios: o valor JÁ REGISTRADO (o mesmo do mapa); o estimado fica só no contador
   const sicM = id === "municipios" ? sicEsferas(T) : [];
-  const valor = id === "municipios" ? (x.cobertura ? curto((x.registrado_ano ?? x.total_ano) + sicM.reduce((s, b) => s + (b.registrado_ano || 0), 0)) : "—") : curto(x.total_ano);
+  const valor = id === "municipios" ? (x.cobertura ? curto((x.registrado_ano ?? x.total_ano) + sicM.reduce((s, b) => s + (b.registrado_ano || 0), 0)) : "—") : curto((x.historico || []).find((h) => h[0] === x.ano)?.[1] ?? x.total_ano);   // deputados/senadores: o mesmo valor da barra e do site (valores de hoje)
   const hist = sicM.length ? somaHist(x.historico, ...sicM.map((b) => b.historico)) : x.historico;
   return `<article class="cartao" style="--c:${e.cor}">
     <div class="k"><span>${e.k}</span>${tag ? `<span class="tag">${tag}</span>` : ""}</div>
