@@ -190,6 +190,10 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   do mesmo cartão e os sites mostram em valores de hoje (R$ 992 mi e R$ 67,5 mi). O cartão passou a usar o valor da barra
   (`hub.js?v=29`; o Mensageiro não mudou; o cartão das prefeituras continua igual ao mapa, de propósito). (5) Senadores: "R$ 84,48 mi"
   da previsão não se parte mais em duas linhas.
+  **Conferido no fim do dia (25/11):** o robô da dívida rodou às 14:28 UTC (agendamento do GitHub atrasou ~1h10) e gravou
+  `ipca_extra` = out/2026 (0,14%); a página mostra "IPCA até out/2026". Rodada manual às 19:45 ok (sem mudança). Auditoria de
+  novo: 111 ok / 0 erros; 20 páginas sem erro (computador e celular). Obs.: a Selic meta do BC falhou na coleta e o robô
+  manteve o valor anterior (13,75%), como previsto no código.
 
 - **24/11 (madrugada, experiência do usuário — parte 2, pedida pelo dono):** a parte 1 (abaixo) foi **publicada na `main`** dos 15
   repositórios do site (o `quanto-custa-educacao` não tem `main`; ficou só na branch de trabalho). Depois: (1) **barrinhas dos
