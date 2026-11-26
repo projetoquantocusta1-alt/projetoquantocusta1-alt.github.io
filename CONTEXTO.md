@@ -386,3 +386,10 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   (ideia: tracinho pontilhado com mini-glossário) ou no modo acadêmico. **Pendente (quando o dono aprovar o tom):**
   estender para o aviso do SICONFI e o quadro "por vereador" do mesmo cartão, depois contadores e demais cartões
   (deputados: cota/subsídio; prefeituras: SICONFI/RREO/função Legislativa; "valores de hoje (IPCA)").
+  **Dono aprovou o tom ("ótimo, pode alterar tudo").** **FEITO na home (hub.js?v=35):** reescritos — as duas notas dos
+  contadores (estimativa/ritmo; "já saiu dos cofres" × "só reservado no orçamento"), o aviso do SICONFI, os rótulos
+  "por vereador" e "gabinetes", o resumo "câmaras inteiras" e o "lado a lado" (saiu "IPCA", "empenhado", "liquidado",
+  "pago", "SICONFI", "valores de hoje"). **Pendente (sweep nos outros repositórios, mesma receita):** cartões/páginas de
+  **deputados** (cota parlamentar, CEAPS, subsídio) e **senadores**; páginas por estado das **prefeituras** (uf.js:
+  empenhado/liquidado/função Legislativa/RREO/SICONFI); **metodologias**; **deputados estaduais**. Regra: frase simples
+  na frente, termo técnico só no modo acadêmico.
