@@ -409,3 +409,14 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   (padrão seguro, sem injeção de comando). **Hardening opcional (não são falhas):** fixar versões exatas das deps
   (requests/pytest usam `>=`); SRI no GoatCounter; CSP via meta; escapar também os KPIs dos `uf.js` dos 18 estados
   SICONFI (hoje só mostram nome de cidade do IBGE + números, risco ~nulo).
+- **26/11 — sondagem deputados estaduais (via sondagem.yml do repo senadores, roda no GitHub porque o container não
+  acessa gov).** 1ª varredura: **MG (ALMG) = coletável** (API aberta XML, `dadosabertos.almg.gov.br/ws/...`); PR (ALEP)
+  promissor (verba de ressarcimento + dados abertos, mas reCAPTCHA); RS endereços não resolveram. 2ª sondagem dirigida
+  (SP/RJ, com User-Agent de navegador): **SP = BLOQUEADO** — `www.al.sp.gov.br/repositorioDados/*.xml` dá 503 para o
+  runner do GitHub mesmo com cabeçalho, e `dadosabertos.al.sp.gov.br` tem **certificado HTTPS quebrado**; sem caminho
+  limpo agora. **RJ = DIFÍCIL** — os dados existem mas atrás de apps JavaScript: a verba (DOCIGP, `docigp.alerj.rj.gov.br`)
+  é um app Laravel com **token embutido** (padrão parecido com o do RN/ALRN) e o `transparencia.alerj.rj.gov.br` é SPA
+  (`/section/report/NNN` só devolve a casca; dados vêm por API interna). Coletável só com engenharia reversa da API —
+  trabalhoso e frágil. **Recomendação ao dono: começar por MG** (rápido) para já ter um estado novo no ar; SP e RJ ficam
+  como "possível, mas difícil" para depois. Aguardando o dono dizer se começo por MG. Deputados estaduais é 1 repo só
+  (`quanto-custa-deputados-estaduais`), não precisa criar repo novo; cada assembleia tem coletor próprio (alece/alba/alrn).
