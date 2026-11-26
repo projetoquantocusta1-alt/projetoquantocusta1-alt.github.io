@@ -188,9 +188,15 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   do mês seguinte à última folha DELE (`ult_por_uf` na junção dos resumos) e o "Todos" = CE + BA + RN (R$ 83,1 mi às 2h). A nota
   diz "dados até Nov/2026 (Rio Grande do Norte: até Set/2026)". Também: campo de busca "Nome do deputado" (cortava no celular) e
   aviso "dados sendo coletados" com cantos normais no celular (era uma pílula de 4 linhas). `app.js?v=14`, `estaduais.css?v=5`.
-  **Para o dono decidir (não mudado):** no hub, o valor das câmaras e dos gabinetes do CE ainda é o "registrado" sem correção
-  (ex.: gabinetes R$ 653 mi no hub x R$ 662,1 mi na página do CE, em valores de hoje) — é assim de propósito para o cartão bater com
-  o mapa; corrigir exigiria mudar o Mensageiro e o mapa juntos.
+- **26/11 (manhã, pedido do dono): hub inteiro em "valores de hoje" no ano em andamento.** Antes, os valores de 2026 do hub
+  (contadores, cartão das câmaras, gabinetes, cota dos senadores, mapa e painel do estado) eram os da época, enquanto as barras e os
+  sites mostram em valores de hoje (ex.: gabinetes do CE R$ 653 mi no hub x R$ 662,1 mi na página do CE). Agora o Mensageiro grava
+  `fator_ano` (o `fator_ipca` do resumo do ano dos deputados, IPCA até 10/2026) em `totais_hub.json` (e `fator_ipca` na esfera dos
+  deputados) e o `hub.js` multiplica na hora de mostrar (`hoje()`; sem o campo, usa total corrigido ÷ total da época). **Os números
+  gravados nos JSON continuam da época** → `robo/auditoria.py` não mudou (111 ok). Cartão e mapa continuam batendo entre si (os dois
+  corrigidos). O mapa só muda de escala, não de cores. Site dos deputados: o contador "Só em 2026" (e por segundo, por dia, previsão)
+  também passou para valores de hoje (`app.js?v=27`), como o resto da página. Conferido: Congresso no hub = deputados + senadores
+  dos sites. `hub.js?v=30`.
 
 - **25/11 (auditoria de sempre + experiência do usuário):** (1) **Dívida pública: "Valores de hoje" corrigia só até set/2026**
   (os outros sites usam 10/2026): a tabela mensal termina no último mês da dívida, e o IPCA de outubro ficava de fora. O robô

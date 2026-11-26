@@ -51,21 +51,29 @@ function comparar(T) {
   $("#comparar").innerHTML = it.length ? "Lado a lado: " + it.join(" · ") + ". Valores de hoje (IPCA)." : "";
 }
 
+// valores do ano em andamento em "valores de hoje" (IPCA), como nas barras e nos sites; o robô grava os valores da época
+let FA = 1;
+const hoje = (v) => (v || 0) * FA;
+function fatorAno(T) {
+  if (T.fator_ano) return T.fator_ano;
+  const d = T.esferas?.deputados, h = (d?.historico || []).find((x) => x[0] === T.ano);
+  return h && d.total_ano ? h[1] / d.total_ano : 1;   // dados antigos: total corrigido ÷ total da época
+}
 function contador(T) {
   // principal: Congresso Nacional; câmaras do Ceará num contador à parte (não misturar Brasil com um estado)
   const cs = ["deputados", "senadores"].map((k) => (T.contador || {})[k]).filter(Boolean);
   const cms = Object.keys(T.contador || {}).filter((k) => k.startsWith("municipios")).map((k) => T.contador[k]).filter(Boolean);
   const cm = cms.length ? cms : null;
   document.querySelectorAll(".ano").forEach((e) => (e.textContent = T.ano));
-  const porSeg = cs.reduce((s, c) => s + (c.por_seg || 0), 0);
+  const porSeg = hoje(cs.reduce((s, c) => s + (c.por_seg || 0), 0));
   $("#cont-rot .ano").textContent = T.ano;
   $("#cont-ritmo").innerHTML = porSeg ? `+ <b>${brl(porSeg, 2)}</b> por segundo · <b>${curto(porSeg * 86400)}</b> por dia` : "";
   const mun = T.esferas.municipios, sics = sicEsferas(T);
-  $("#cont-nota").textContent = "Valor estimado em tempo real: soma o que já foi registrado e avança no ritmo de gasto do ano.";
+  $("#cont-nota").textContent = "Valor estimado em tempo real, em valores de hoje (IPCA): soma o que já foi registrado e avança no ritmo de gasto do ano.";
   if (cm && mun) {
     $("#cont-mun").hidden = false;
-    $("#cont-mun-nota").textContent = `No Ceará, os órgãos "Gabinete do Prefeito/Vice" ficam fora: registraram ${curto(mun.gabinetes_registrado_ano || 0)} em ${T.ano}, mas incluem comunicação, cerimonial, procuradoria e programas.` +
-      (mun.pago_ano && mun.registrado_ano > mun.pago_ano ? ` O contador avança no ritmo do que já foi pago (${curto(mun.pago_ano)}), não do empenhado (${curto(mun.registrado_ano)}): contratos e folha são empenhados de uma vez no começo do ano e pagos aos poucos.` : "") +
+    $("#cont-mun-nota").textContent = `No Ceará, os órgãos "Gabinete do Prefeito/Vice" ficam fora: registraram ${curto(hoje(mun.gabinetes_registrado_ano))} em ${T.ano}, mas incluem comunicação, cerimonial, procuradoria e programas.` +
+      (mun.pago_ano && mun.registrado_ano > mun.pago_ano ? ` O contador avança no ritmo do que já foi pago (${curto(hoje(mun.pago_ano))}), não do empenhado (${curto(hoje(mun.registrado_ano))}): contratos e folha são empenhados de uma vez no começo do ano e pagos aos poucos.` : "") +
       (mun.cobertura < mun.total_municipios ? ` Ainda em coleta: ${mun.cobertura} de ${mun.total_municipios} cidades com dados de ${T.ano}.` : "") +
       (sics.length ? ` ${eLista(sics.map((b) => `${UF_NOME[b.uf] || b.uf} (${nf(b.cobertura)} de ${nf(b.total_municipios)} cidades)`))}: dados do Tesouro Nacional, a cada dois meses; o contador avança no ritmo do liquidado (o relatório do Tesouro não traz o pago) e não inclui gabinetes.` : "");
     if (sics.length) $("#cont-mun-rot").innerHTML = `E com as <b>câmaras municipais ${eLista([UF_DO.CE, ...sics.map((b) => UF_DO[b.uf] || b.uf)])}</b> (${nf(mun.total_municipios + sics.reduce((s, b) => s + b.total_municipios, 0))} cidades) em <span class="ano">${T.ano}</span>`;
@@ -73,8 +81,8 @@ function contador(T) {
   const el = $("#contador");
   const ext = $("#contador-ext");
   const elM = $("#contador-mun"), extM = $("#contador-mun-ext");
-  const passo = () => { const t = Date.now(), v = cs.reduce((s, c) => s + valorAgora(c, t), 0); el.textContent = brl(v); ext.textContent = porExtenso(v);
-    if (cm) { const vm = cm.reduce((s, c) => s + valorAgora(c, t), 0); elM.textContent = brl(vm); extM.textContent = porExtenso(vm); }
+  const passo = () => { const t = Date.now(), v = hoje(cs.reduce((s, c) => s + valorAgora(c, t), 0)); el.textContent = brl(v); ext.textContent = porExtenso(v);
+    if (cm) { const vm = hoje(cm.reduce((s, c) => s + valorAgora(c, t), 0)); elM.textContent = brl(vm); extM.textContent = porExtenso(vm); }
     requestAnimationFrame(passo); };
   passo();
 }
@@ -151,19 +159,19 @@ function cartao(id, x, T) {
             [`faltas no Plenário em ${x.ano}`, x.faltas_plenario != null ? pct(x.faltas_plenario) : "—"]];
   } else if (id === "senadores") {
     quem = `${nf(x.cadeiras)} senadores · desde ${x.desde}`;
-    inds = [[`cota (CEAPS) em ${x.ano}`, curto(x.cota_ano)], ["maior cota do ano", x.maior_cota ? `${curto(x.maior_cota.valor)}` : "—"]];
+    inds = [[`cota (CEAPS) em ${x.ano}`, curto(hoje(x.cota_ano))], ["maior cota do ano", x.maior_cota ? `${curto(hoje(x.maior_cota.valor))}` : "—"]];
     if (x.maior_cota) inds[1][0] = `maior cota do ano · ${esc(x.maior_cota.nome)}`;
   } else {
     const comp = x.anos_completos || [], sics = sicEsferas(T), N = (b) => UF_NOME[b.uf] || b.uf;
     const nMun = x.total_municipios + sics.reduce((s, b) => s + (b.total_municipios || 0), 0), nVer = (x.vereadores || 0) + sics.reduce((s, b) => s + (b.vereadores || 0), 0);
     quem = `${nf(nMun)} municípios${sics.length ? ` de ${nf(1 + sics.length)} estados` : ""}${nVer ? ` · ${nf(nVer)} vereadores` : ""}`;
     tag = sics.length <= 2 ? eLista(["Ceará", ...sics.map(N)]) : `${nf(1 + sics.length)} estados`;
-    valorRot = `câmaras municipais, registrado em ${x.ano}`;
+    valorRot = `câmaras municipais, registrado em ${x.ano}, em valores de hoje`;
     // média por vereador de todos os estados (câmara ÷ vereadores), em vez de um quadro por estado
     const comVer = [x, ...sics].filter((e) => e.por_vereador && e.vereadores);
     const mediaVer = comVer.length ? comVer.reduce((s, e) => s + e.por_vereador.valor * e.vereadores, 0) / comVer.reduce((s, e) => s + e.vereadores, 0) : null;
     inds = [[`por vereador, por ano (média dos ${nf(1 + sics.length)} estados, valores de hoje) · câmara inteira ÷ vereadores`, mediaVer ? curto(mediaVer) : "—"],
-            [`gabinetes do prefeito e do vice no Ceará em ${x.ano} (órgão inteiro, fora do total; só o Ceará tem esse dado)`, curto(x.gabinetes_registrado_ano || 0)]];
+            [`gabinetes do prefeito e do vice no Ceará em ${x.ano} (órgão inteiro, fora do total; só o Ceará tem esse dado)`, curto(hoje(x.gabinetes_registrado_ano))]];
     const ate = (b) => b.bimestre && b.bimestre < 6 ? `, até ${["", "fev", "abr", "jun", "ago", "out", "dez"][b.bimestre]}` : "";
     // a lista por estado (nomes + valores) foi retirada do cartão para deixá-lo limpo; o detalhe por estado fica na página das cidades
     const bm = sics.map((b) => b.bimestre).filter((v) => v && v < 6);
@@ -180,7 +188,7 @@ function cartao(id, x, T) {
   }
   // municípios: o valor JÁ REGISTRADO (o mesmo do mapa); o estimado fica só no contador
   const sicM = id === "municipios" ? sicEsferas(T) : [];
-  const valor = id === "municipios" ? (x.cobertura ? curto((x.registrado_ano ?? x.total_ano) + sicM.reduce((s, b) => s + (b.registrado_ano || 0), 0)) : "—") : curto((x.historico || []).find((h) => h[0] === x.ano)?.[1] ?? x.total_ano);   // deputados/senadores: o mesmo valor da barra e do site (valores de hoje)
+  const valor = id === "municipios" ? (x.cobertura ? curto(hoje((x.registrado_ano ?? x.total_ano) + sicM.reduce((s, b) => s + (b.registrado_ano || 0), 0))) : "—") : curto((x.historico || []).find((h) => h[0] === x.ano)?.[1] ?? x.total_ano);   // deputados/senadores: o mesmo valor da barra e do site (valores de hoje)
   const hist = sicM.length ? somaHist(x.historico, ...sicM.map((b) => b.historico)) : x.historico;
   return `<article class="cartao" style="--c:${e.cor}">
     <div class="k"><span>${e.k}</span>${tag ? `<span class="tag">${tag}</span>` : ""}</div>
@@ -227,7 +235,7 @@ const ESTADO = { sel: "CE", dados: null };
 
 function desenharMapa() {
   const M = window.MAPA_BR, D = ESTADO.dados; if (!M || !D) return;
-  const ufs = Object.keys(M.ufs), val = Object.fromEntries(ufs.map((u) => [u, D.ufs[u]?.por_mes || 0]));
+  const ufs = Object.keys(M.ufs), val = Object.fromEntries(ufs.map((u) => [u, hoje(D.ufs[u]?.por_mes)]));
   const vs = Object.values(val).filter((v) => v > 0), mn = Math.min(...vs), mx = Math.max(...vs);
   $("#mapa").innerHTML = `<svg viewBox="${M.viewBox}" role="img" aria-label="Mapa do Brasil por estado">${ufs.map((u) => {
       const t = val[u] && mx > mn ? (val[u] - mn) / (mx - mn) : 0.3, c = [222 - 150 * t, 235 - 110 * t, 247 - 60 * t].map(Math.round);
@@ -242,20 +250,20 @@ function painelUF() {
   const u = ESTADO.sel, x = ESTADO.dados?.ufs[u], M = window.MAPA_BR; if (!x || !M) return;
   const ano = ESTADO.dados.ano;
   const linha = (tag, cor, txt, v, cls = "") => `<tr><td>${tag ? `<span class="t" style="--c:${cor}">${tag}</span>` : ""}${txt}</td><td class="v ${cls}">${v}</td></tr>`;
-  let rows = linha("DEP", "var(--dep)", `${nf(x.dep.n)} deputados federais`, curto(x.dep.custo)) +
-             linha("SEN", "var(--sen)", x.sen.n > 3 ? `3 senadores <small class="sub">(${nf(x.sen.n)} passaram pelo cargo em ${ano}, contando suplentes que assumiram)</small>` : `${nf(x.sen.n)} senadores`, curto(x.sen.custo));
+  let rows = linha("DEP", "var(--dep)", `${nf(x.dep.n)} deputados federais`, curto(hoje(x.dep.custo))) +
+             linha("SEN", "var(--sen)", x.sen.n > 3 ? `3 senadores <small class="sub">(${nf(x.sen.n)} passaram pelo cargo em ${ano}, contando suplentes que assumiram)</small>` : `${nf(x.sen.n)} senadores`, curto(hoje(x.sen.custo)));
   if (x.mun) {
     const m = x.mun, completo = m.com_dados >= m.total;
-    rows += linha("MUN", "var(--mun)", `${nf(m.total)} câmaras municipais (registrado)${completo ? "" : ` <small class="sub">(${m.fonte === "SICONFI" ? `${nf(m.com_dados)} de ${nf(m.total)} enviaram ao Tesouro` : `em coleta: ${nf(m.com_dados)} de ${nf(m.total)}`})</small>`}`, m.com_dados ? curto(m.custo) : "—");
-    if (m.gabinetes) rows += linha("", "", `Gabinetes do prefeito e do vice <small class="sub">(órgão inteiro, fora do custo dos políticos)</small>`, curto(m.gabinetes));
-    if (m.emendas != null) rows += linha("", "", "Emendas recebidas pelos municípios", m.com_dados ? curto(m.emendas) : "—");
+    rows += linha("MUN", "var(--mun)", `${nf(m.total)} câmaras municipais (registrado)${completo ? "" : ` <small class="sub">(${m.fonte === "SICONFI" ? `${nf(m.com_dados)} de ${nf(m.total)} enviaram ao Tesouro` : `em coleta: ${nf(m.com_dados)} de ${nf(m.total)}`})</small>`}`, m.com_dados ? curto(hoje(m.custo)) : "—");
+    if (m.gabinetes) rows += linha("", "", `Gabinetes do prefeito e do vice <small class="sub">(órgão inteiro, fora do custo dos políticos)</small>`, curto(hoje(m.gabinetes)));
+    if (m.emendas != null) rows += linha("", "", "Emendas recebidas pelos municípios", m.com_dados ? curto(hoje(m.emendas)) : "—");
     if (m.fonte === "SICONFI") rows += linha("", "", `<span class="sub">Dados do Tesouro Nacional (SICONFI): sem gabinetes nem emendas para este estado.</span>`, "");
-    if (x.por_habitante) rows += linha("", "", "Por habitante, no ano", brl(x.por_habitante, 2), "vermelho");
+    if (x.por_habitante) rows += linha("", "", "Por habitante, no ano", brl(hoje(x.por_habitante), 2), "vermelho");
   } else {
     rows += linha("", "", `<span class="sub">Prefeitos e vereadores deste estado ainda não estão no projeto (por enquanto, ${eLista(Object.entries(ESTADO.dados.ufs).filter(([, v]) => v.mun).map(([u]) => UF_NOME[u] || u))}).</span>`, "");
   }
-  rows += linha("", "", "Custo médio por político federal, por mês", x.por_mes ? brl(x.por_mes) : "—");
-  $("#uf-painel").innerHTML = `<div class="uf-cab"><small>Estado selecionado · ${ano} até agora</small><h3>${esc(M.ufs[u][0])}</h3></div>
+  rows += linha("", "", "Custo médio por político federal, por mês", x.por_mes ? brl(hoje(x.por_mes)) : "—");
+  $("#uf-painel").innerHTML = `<div class="uf-cab"><small>Estado selecionado · ${ano} até agora · valores de hoje</small><h3>${esc(M.ufs[u][0])}</h3></div>
     <table class="uf-linhas"><tbody>${rows}</tbody></table>
     <div class="uf-links"><a href="${SITES.dep}?uf=${u}&pag=deputados">Deputados de ${u} →</a><a class="sec2" href="${SITES.sen}?uf=${u}#senadores">Senadores de ${u} →</a>${x.mun ? `<a class="sec2" href="${SITES.mun}${u === "CE" ? "" : "?uf=" + u.toLowerCase()}">Cidades ${UF_DO[u] || u} →</a>` : ""}</div>`;
 }
@@ -379,6 +387,7 @@ async function iniciar() {
     $("#cartoes").innerHTML = Object.keys(ESF).map((k) => cartao(k, null)).join("");
     return;
   }
+  FA = fatorAno(T);
   contador(T);
   comparar(T);
   const sl = $("#dava-pct"); if (sl) { if (T.dava) sl.value = Math.round(T.dava.percentual * 100); sl.oninput = () => { DAVA_PCT = sl.value / 100; dava(T); }; }

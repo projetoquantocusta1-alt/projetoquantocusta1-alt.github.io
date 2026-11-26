@@ -117,6 +117,7 @@ def deputados(f: Fonte, ano: int) -> dict:
         "desde": min((a["ano"] for a in hist), default=ano),
         "cadeiras": CADEIRAS["deputados"],
         "por_cadeira": {"ano": ult["ano"], "valor": r2(ult["total_corrigido"] / CADEIRAS["deputados"])} if ult else None,
+        "fator_ipca": r.get("fator_ipca"),   # IPCA do ano em andamento (o hub mostra os valores do ano em valores de hoje)
         "faltas_plenario": round(faltas / dias, 4) if dias else None,
         "dava": {"ano": ult["ano"], "base": r2(base)} if ult else None,
         "atualizado_em": meta.get("atualizado_em"), "url": SITE.format(repo=REPOS["deputados"]),
@@ -518,6 +519,7 @@ def montar(local: Path | None = None, hoje: date | None = None, anterior: dict |
                 out["status"][nome] = f"indisponível ({e})"
     es = out["esferas"]
     out["contador"] = {k: v["contador"] for k, v in es.items()}
+    out["fator_ano"] = (es.get("deputados") or {}).get("fator_ipca") or 1
     # o contador principal é o Congresso Nacional; os municípios do Ceará têm contador próprio
     out["total_ano"] = r2(sum(es[k]["total_ano"] for k in ("deputados", "senadores") if k in es))
     mun = [es[k] for k in CHAVES_MUN if k in es]
