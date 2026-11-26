@@ -393,3 +393,8 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   **deputados** (cota parlamentar, CEAPS, subsídio) e **senadores**; páginas por estado das **prefeituras** (uf.js:
   empenhado/liquidado/função Legislativa/RREO/SICONFI); **metodologias**; **deputados estaduais**. Regra: frase simples
   na frente, termo técnico só no modo acadêmico.
+  **HOME 100% revisada (hub.js?v=36):** além dos contadores/cartão, reescrita a seção "Como calculamos" inteira
+  (CEAP/CEAPS→"cota parlamentar"; "empenhado menos anulações"→"o gasto"; "balancete"→"prestação de contas/balanço";
+  "função Legislativa (SICONFI)"→"a parte da prefeitura gasta com a câmara"; "IPCA/valores de hoje"→"corrigido pela
+  inflação"; pago/liquidado/registrado→"já saiu dos cofres"/"só reservado no orçamento") e os rótulos do painel do
+  mapa, das pendências ("Não enviaram as contas") e do aviso de divergência. TCE-CE e CNPJ ficam (definidos/comuns).
