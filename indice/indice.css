@@ -1,5 +1,5 @@
 /* Índice de Transparência e Governança Pública */
-.ix { max-width: 1200px; margin: 0 auto; padding: 26px 16px 10px; --ix-verde: #23966B; --ix-amar: #D69A32; --ix-verm: #C84C4C; --ix-cinza: #B8C3CF; --ix-muted: #5B7189; --ix-linha: #DDE4EB; }
+.ix { max-width: 1200px; margin: 0 auto; padding: 26px 16px 10px; --ix-verde: #23966B; --ix-amar: #D69A32; --ix-verm: #c4161c; --ix-cinza: #B8C3CF; --ix-muted: #5B7189; --ix-linha: #DDE4EB; }
 .ix-selo { display: inline-block; background: #FFF6E5; border: 1px solid #E8C27A; color: #6b4a12; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 3px 12px; margin-bottom: 10px; }
 .ix-hero h1 { font: 800 clamp(26px, 4vw, 38px)/1.12 Manrope, system-ui, sans-serif; margin: 0 0 8px; text-align: left; color: #10243A; }
 .ix-sub { color: var(--ix-muted); max-width: 900px; margin: 0; line-height: 1.55; }

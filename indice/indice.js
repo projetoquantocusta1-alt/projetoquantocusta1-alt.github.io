@@ -4,7 +4,7 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const nf = (v, d = 0) => (v || 0).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
 const norm = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-const COR = { boa: "#23966B", regular: "#D69A32", ruim: "#C84C4C", sem: "#B8C3CF" };
+const COR = { boa: "#23966B", regular: "#D69A32", ruim: "#c4161c", sem: "#B8C3CF" };
 const FX = { boa: "boa", regular: "regular", ruim: "ruim", sem: "sem nota" };
 let NOME_UF = { CE: "Ceará", BA: "Bahia" };
 const SITE = "https://quantocustaum.com/";

@@ -122,7 +122,7 @@ function somaHist(a, ...outras) {
     return acc.filter((h) => mb.has(h[0])).map(([ano, v, c]) => [ano, v + mb.get(ano)[1], c && mb.get(ano)[2]]); }, a || []);
 }
 // "Quem não prestou contas": prefeituras e câmaras que não enviaram as contas ou cujos números não fecham
-const GRUPOS_PEND = [["nao_enviou", "Não enviaram o relatório ou o balancete", "var(--pend-verm, #C84C4C)", "v"],
+const GRUPOS_PEND = [["nao_enviou", "Não enviaram o relatório ou o balancete", "var(--pend-verm, #c4161c)", "v"],
   ["nao_fecha", "Os números não fecham", "#D69A32", "a"], ["anterior", "Anos anteriores", "#5B7189", "c"]];
 let PEND_UF = "";
 const PEND_ABERTO = new Set();   // grupos da lista "Quem não prestou contas" abertos com "mostrar mais"

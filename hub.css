@@ -1,6 +1,6 @@
 /* Quanto Custa — hub (mesmas cores dos três sites) */
 :root {
-  --marinho: #10243A; --azul: #2463A6; --azul-esc: #2463A6; --cinza: #F0F3F6; --verde: #16865D; --amarelo: #D69A32; --vermelho: #C84C4C;
+  --marinho: #10243A; --azul: #2463A6; --azul-esc: #2463A6; --cinza: #F0F3F6; --verde: #16865D; --amarelo: #D69A32; --vermelho: #c4161c;
   --tinta: #1D2A3A; --suave: #5B6B7E; --linha: #E1E7EE; --painel: #FFFFFF; --fundo: #FFFFFF;
   --dep: #2463A6; --sen: #16865D; --mun: #D69A32;
   --serif: Manrope, "Segoe UI", system-ui, sans-serif; --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -176,7 +176,7 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
 
 /* leitura por extenso abaixo dos números grandes */
 .hero .extenso { font-size: 18px; }
-.extenso { margin: 2px 0 6px; font-size: 15px; font-weight: 700; color: #C84C4C; letter-spacing: .01em; }
+.extenso { margin: 2px 0 6px; font-size: 15px; font-weight: 700; color: #c4161c; letter-spacing: .01em; }
 .extenso:empty { display: none; }
 
 /* contador das câmaras do Ceará (separado do Congresso) */
@@ -226,7 +226,7 @@ dialog.empresa::backdrop { background: rgba(20,40,63,.55); }
 
 /* lista "Quem não prestou contas" */
 .chamada-pend { display: flex; align-items: center; gap: 10px; background: #FDF0EF; border: 1px solid #E3A6A0; border-radius: 10px; padding: 9px 12px; margin: 10px 0 0; font-size: 13.5px; color: #4a1f1b; text-decoration: none; }
-.chamada-pend .n { background: #C84C4C; color: #fff; font-weight: 700; border-radius: 8px; padding: 2px 9px; font-size: 14px; }
+.chamada-pend .n { background: #c4161c; color: #fff; font-weight: 700; border-radius: 8px; padding: 2px 9px; font-size: 14px; }
 .chamada-pend b { color: #8a2a22; }
 .pend { margin-top: 18px; background: var(--painel, #fff); border: 1px solid var(--linha); border-radius: 14px; overflow: hidden; scroll-margin-top: 16px; }
 .pend .p-cab { background: #10243A; color: #fff; padding: 16px 20px; }
