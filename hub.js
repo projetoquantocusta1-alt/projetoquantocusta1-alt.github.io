@@ -166,7 +166,7 @@ function cartao(id, x, T) {
     const nMun = x.total_municipios + sics.reduce((s, b) => s + (b.total_municipios || 0), 0), nVer = (x.vereadores || 0) + sics.reduce((s, b) => s + (b.vereadores || 0), 0);
     quem = `${nf(nMun)} municípios${sics.length ? ` de ${nf(1 + sics.length)} estados` : ""}${nVer ? ` · ${nf(nVer)} vereadores` : ""}`;
     tag = sics.length <= 2 ? eLista(["Ceará", ...sics.map(N)]) : `${nf(1 + sics.length)} estados`;
-    valorRot = `câmaras municipais · empenhado em ${x.ano}, valores de hoje`;
+    valorRot = `o que as câmaras municipais separaram para gastar em ${x.ano}, já corrigido pela inflação`;
     // média por vereador de todos os estados (câmara ÷ vereadores), em vez de um quadro por estado
     const comVer = [x, ...sics].filter((e) => e.por_vereador && e.vereadores);
     const mediaVer = comVer.length ? comVer.reduce((s, e) => s + e.por_vereador.valor * e.vereadores, 0) / comVer.reduce((s, e) => s + e.vereadores, 0) : null;
@@ -196,7 +196,7 @@ function cartao(id, x, T) {
     <div class="k"><span>${e.k}</span>${tag ? `<span class="tag">${tag}</span>` : ""}</div>
     <h3>${e.nome}</h3><p class="quem">${quem}</p>
     <div class="valor"><b class="num">${valor}</b><span>${valorRot}${x.meses && x.meses < 12 ? " (até agora)" : ""}</span></div>
-    ${pagoLiq ? `<p class="valor-sub">dos quais <b class="num">${curto(pagoLiq)}</b> já foram <b>pagos</b> (Ceará) ou <b>liquidados</b> (demais estados)</p>` : ""}
+    ${pagoLiq ? `<p class="valor-sub">desse valor, <b class="num">${curto(pagoLiq)}</b> já saíram de fato dos cofres</p>` : ""}
     ${partes}${barras(hist)}
     ${aviso}${avisoBa}${avisoDiv}
     <div class="inds">${inds.map(([r, v]) => `<div class="ind"><small>${r}</small><b class="num">${v}</b></div>`).join("")}</div>
