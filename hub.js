@@ -48,7 +48,7 @@ function comparar(T) {
   if (s?.por_cadeira) it.push(`<b>1 senador</b> ${curto(s.por_cadeira.valor)}/ano (${s.por_cadeira.ano}, sem a equipe do gabinete)`);
   if (m?.por_vereador && m?.vereadores) { const cam = (m.por_vereador.valor * m.vereadores) / m.total_municipios;
     it.push(`<b>1 câmara municipal do Ceará</b> ${curto(cam)}/ano em média (${m.por_vereador.ano}) · ${curto(m.por_vereador.valor)} por vereador`); }
-  $("#comparar").innerHTML = it.length ? "Lado a lado: " + it.join(" · ") + ". Valores de hoje (IPCA)." : "";
+  $("#comparar").innerHTML = it.length ? "Lado a lado: " + it.join(" · ") + ". Valores corrigidos pela inflação." : "";
 }
 
 // valores do ano em andamento em "valores de hoje" (IPCA), como nas barras e nos sites; o robô grava os valores da época
@@ -69,13 +69,13 @@ function contador(T) {
   $("#cont-rot .ano").textContent = T.ano;
   $("#cont-ritmo").innerHTML = porSeg ? `+ <b>${brl(porSeg, 2)}</b> por segundo · <b>${curto(porSeg * 86400)}</b> por dia` : "";
   const mun = T.esferas.municipios, sics = sicEsferas(T);
-  $("#cont-nota").textContent = "Valor estimado em tempo real, em valores de hoje (IPCA): soma o que já foi registrado e avança no ritmo de gasto do ano.";
+  $("#cont-nota").textContent = "Uma estimativa que corre em tempo real: soma o que já foi gasto e segue no ritmo do ano. Os valores são corrigidos pela inflação, para dar para comparar com outros anos.";
   if (cm && mun) {
     $("#cont-mun").hidden = false;
-    $("#cont-mun-nota").textContent = `No Ceará, os órgãos "Gabinete do Prefeito/Vice" ficam fora: registraram ${curto(hoje(mun.gabinetes_registrado_ano))} em ${T.ano}, mas incluem comunicação, cerimonial, procuradoria e programas.` +
-      (mun.pago_ano && mun.registrado_ano > mun.pago_ano ? ` O contador avança no ritmo do que já foi pago (${curto(hoje(mun.pago_ano))}), não do empenhado (${curto(hoje(mun.registrado_ano))}): contratos e folha são empenhados de uma vez no começo do ano e pagos aos poucos.` : "") +
+    $("#cont-mun-nota").textContent = `No Ceará, os gabinetes do prefeito e do vice ficam de fora desta conta: gastaram ${curto(hoje(mun.gabinetes_registrado_ano))} em ${T.ano}, mas aí dentro entram coisas como comunicação, cerimonial e outros programas.` +
+      (mun.pago_ano && mun.registrado_ano > mun.pago_ano ? ` O contador sobe no ritmo do que já saiu de fato dos cofres (${curto(hoje(mun.pago_ano))}), e não do que foi só reservado no orçamento (${curto(hoje(mun.registrado_ano))}): a folha e os contratos são reservados de uma vez no começo do ano e pagos aos poucos.` : "") +
       (mun.cobertura < mun.total_municipios ? ` Ainda em coleta: ${mun.cobertura} de ${mun.total_municipios} cidades com dados de ${T.ano}.` : "") +
-      (sics.length ? ` ${eLista(sics.map((b) => `${UF_NOME[b.uf] || b.uf} (${nf(b.cobertura)} de ${nf(b.total_municipios)} cidades)`))}: dados do Tesouro Nacional, a cada dois meses; o contador avança no ritmo do liquidado (o relatório do Tesouro não traz o pago) e não inclui gabinetes.` : "");
+      (sics.length ? ` ${eLista(sics.map((b) => `${UF_NOME[b.uf] || b.uf} (${nf(b.cobertura)} de ${nf(b.total_municipios)} cidades)`))}: os dados vêm do Tesouro Nacional, atualizados a cada dois meses. Aqui o contador sobe no ritmo do que já foi entregue e conferido (o Tesouro não informa o que foi efetivamente pago) e não inclui os gabinetes.` : "");
     if (sics.length) $("#cont-mun-rot").innerHTML = `E com as <b>câmaras municipais ${eLista([UF_DO.CE, ...sics.map((b) => UF_DO[b.uf] || b.uf)])}</b> (${nf(mun.total_municipios + sics.reduce((s, b) => s + b.total_municipios, 0))} cidades) em <span class="ano">${T.ano}</span>`;
   }
   const el = $("#contador");
@@ -170,12 +170,12 @@ function cartao(id, x, T) {
     // média por vereador de todos os estados (câmara ÷ vereadores), em vez de um quadro por estado
     const comVer = [x, ...sics].filter((e) => e.por_vereador && e.vereadores);
     const mediaVer = comVer.length ? comVer.reduce((s, e) => s + e.por_vereador.valor * e.vereadores, 0) / comVer.reduce((s, e) => s + e.vereadores, 0) : null;
-    inds = [[`por vereador, por ano (média dos ${nf(1 + sics.length)} estados, valores de hoje) · câmara inteira ÷ vereadores`, mediaVer ? curto(mediaVer) : "—"],
-            [`gabinetes do prefeito e do vice no Ceará em ${x.ano} (órgão inteiro, fora do total; só o Ceará tem esse dado)`, curto(hoje(x.gabinetes_registrado_ano))]];
+    inds = [[`quanto cada vereador custa por ano, em média (o gasto da câmara dividido pelo número de vereadores)`, mediaVer ? curto(mediaVer) : "—"],
+            [`gasto dos gabinetes do prefeito e do vice no Ceará em ${x.ano} (não entra no total acima; por enquanto só o Ceará tem esse dado)`, curto(hoje(x.gabinetes_registrado_ano))]];
     const ate = (b) => b.bimestre && b.bimestre < 6 ? `, até ${["", "fev", "abr", "jun", "ago", "out", "dez"][b.bimestre]}` : "";
     // a lista por estado (nomes + valores) foi retirada do cartão para deixá-lo limpo; o detalhe por estado fica na página das cidades
     const bm = sics.map((b) => b.bimestre).filter((v) => v && v < 6);
-    if (sics.length) avisoBa = `<p class="aviso">${eLista(sics.map(N))}: dados do Tesouro Nacional (SICONFI), sem nota a nota nem gabinetes (só ${sics.length > 1 ? "os tribunais de contas desses estados têm, e o robô ainda não os lê" : "o tribunal de contas desse estado tem, e o robô ainda não o lê"}).${bm.length ? ` O valor de ${x.ano} é o empenhado até ${["", "fevereiro", "abril", "junho", "agosto", "outubro"][Math.min(...bm)]}${bm.length > 1 ? " ou depois" : ""}, que já fica perto do ano inteiro: as câmaras empenham a folha e os contratos do ano logo no começo.` : ""}</p>`;
+    if (sics.length) avisoBa = `<p class="aviso">${eLista(sics.map(N))}: os dados vêm do Tesouro Nacional e trazem só o total de cada câmara — ainda não dá para ver gasto por gasto, nem os gabinetes (isso fica ${sics.length > 1 ? "nos tribunais de contas desses estados, que o robô ainda não lê" : "no tribunal de contas desse estado, que o robô ainda não lê"}).${bm.length ? ` O valor de ${x.ano} já fica perto do ano inteiro, porque as câmaras reservam a folha e os contratos do ano logo no começo.` : ""}</p>`;
     const dv = x.divergencias || {}, tit = (n) => String(n || "").toLowerCase().replace(/(^|\s)(\p{L})/gu, (m) => m.toUpperCase());
     const sb = (dv.sem_balancete || []).map(([n]) => tit(n)), df = (dv.diferenca || []).map(([n]) => tit(n));
     const P = T.pendencias;
