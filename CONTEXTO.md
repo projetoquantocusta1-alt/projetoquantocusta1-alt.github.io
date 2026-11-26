@@ -353,3 +353,9 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   **Pendente meu (quando os dados chegarem e o Pages estiver ligado):** registrar os 10 no seletor da página única
   dos municípios (`quanto-custa-municipios/docs/index.html`: `#f-uf` + `ESTADOS`), no hub (`robo/mensageiro.py`
   SICONFI/CHAVES_MUN e `hub.js` UF_NOME/UF_DO/UF_EM) e fazer a auditoria. Depois: Sul; por fim Sudeste (SP/MG grandes).
+- **26/11 — cor:** o **vermelho dos indicadores** (números grandes das homes, deltas, etc.) passou do vermelho suave
+  **`#C84C4C`** para o vermelho sangue **`#c4161c`** (o mesmo já usado nos cartões compartilháveis — agora unificado),
+  a pedido do dono ("vermelho sangue, mais chamativo"). Trocado em 7 repositórios (hub `hub.css`/`hub.js`/`indice`,
+  `quanto-custa-nucleo/web/tema.css` e os `tema.css`/CSS de deputados, senadores, municípios e estaduais). Subidas as
+  versões de cache (`?v=`) dos CSS/JS alterados em todos os sites, para o navegador pegar o novo visual (era por isso
+  que o layout parecia "desatualizado" — cache antigo).
