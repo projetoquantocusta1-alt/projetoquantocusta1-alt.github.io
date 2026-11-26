@@ -26,7 +26,10 @@ CONTA = "projetoquantocusta1-alt"
 # Estados cujas prefeituras vêm do SICONFI (Tesouro Nacional), cada um no seu repositório. Um estado só entra no
 # hub depois que o robô dele terminou a primeira coleta (ver municipios_siconfi).
 SICONFI = {"BA": "Bahia", "PE": "Pernambuco", "PB": "Paraíba", "RN": "Rio Grande do Norte",
-           "MA": "Maranhão", "PI": "Piauí", "AL": "Alagoas", "SE": "Sergipe"}
+           "MA": "Maranhão", "PI": "Piauí", "AL": "Alagoas", "SE": "Sergipe",
+           "GO": "Goiás", "MT": "Mato Grosso", "MS": "Mato Grosso do Sul",
+           "AC": "Acre", "AM": "Amazonas", "AP": "Amapá", "PA": "Pará",
+           "RO": "Rondônia", "RR": "Roraima", "TO": "Tocantins"}
 REPOS = {"deputados": "quanto-custa-deputados", "senadores": "quanto-custa-senadores", "municipios": "quanto-custa-municipios",
          **{f"municipios_{u.lower()}": f"quanto-custa-municipios-{u.lower()}" for u in SICONFI}}
 CHAVES_MUN = ["municipios"] + [f"municipios_{u.lower()}" for u in SICONFI]

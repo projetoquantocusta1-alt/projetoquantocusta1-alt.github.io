@@ -28,9 +28,9 @@ const ESF = {
   municipios: { cor: "var(--mun)", k: "Prefeituras e câmaras", nome: "Prefeitos e vereadores", ir: "Ver minha cidade, nota a nota" },
 };
 // estados das prefeituras: o Ceará vem do TCE-CE; os outros, do Tesouro Nacional (SICONFI), cada um no seu repositório
-const UF_NOME = { CE: "Ceará", BA: "Bahia", PE: "Pernambuco", PB: "Paraíba", RN: "Rio Grande do Norte", MA: "Maranhão", PI: "Piauí", AL: "Alagoas", SE: "Sergipe" };
-const UF_DO = { CE: "do Ceará", BA: "da Bahia", PE: "de Pernambuco", PB: "da Paraíba", RN: "do Rio Grande do Norte", MA: "do Maranhão", PI: "do Piauí", AL: "de Alagoas", SE: "de Sergipe" };
-const UF_EM = { CE: "no Ceará", BA: "na Bahia", PE: "em Pernambuco", PB: "na Paraíba", RN: "no Rio Grande do Norte", MA: "no Maranhão", PI: "no Piauí", AL: "em Alagoas", SE: "em Sergipe" };
+const UF_NOME = { CE: "Ceará", BA: "Bahia", PE: "Pernambuco", PB: "Paraíba", RN: "Rio Grande do Norte", MA: "Maranhão", PI: "Piauí", AL: "Alagoas", SE: "Sergipe", GO: "Goiás", MT: "Mato Grosso", MS: "Mato Grosso do Sul", AC: "Acre", AM: "Amazonas", AP: "Amapá", PA: "Pará", RO: "Rondônia", RR: "Roraima", TO: "Tocantins" };
+const UF_DO = { CE: "do Ceará", BA: "da Bahia", PE: "de Pernambuco", PB: "da Paraíba", RN: "do Rio Grande do Norte", MA: "do Maranhão", PI: "do Piauí", AL: "de Alagoas", SE: "de Sergipe", GO: "de Goiás", MT: "de Mato Grosso", MS: "de Mato Grosso do Sul", AC: "do Acre", AM: "do Amazonas", AP: "do Amapá", PA: "do Pará", RO: "de Rondônia", RR: "de Roraima", TO: "do Tocantins" };
+const UF_EM = { CE: "no Ceará", BA: "na Bahia", PE: "em Pernambuco", PB: "na Paraíba", RN: "no Rio Grande do Norte", MA: "no Maranhão", PI: "no Piauí", AL: "em Alagoas", SE: "em Sergipe", GO: "em Goiás", MT: "em Mato Grosso", MS: "em Mato Grosso do Sul", AC: "no Acre", AM: "no Amazonas", AP: "no Amapá", PA: "no Pará", RO: "em Rondônia", RR: "em Roraima", TO: "no Tocantins" };
 const eLista = (l) => (l.length > 1 ? l.slice(0, -1).join(", ") + " e " + l[l.length - 1] : l[0] || "");
 // esferas municipais pelo SICONFI presentes nos totais (municipios_ba, municipios_pe...)
 const sicEsferas = (T) => Object.keys(T.esferas || {}).filter((k) => k.startsWith("municipios_")).map((k) => T.esferas[k]);
