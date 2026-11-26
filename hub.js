@@ -166,7 +166,7 @@ function cartao(id, x, T) {
     const nMun = x.total_municipios + sics.reduce((s, b) => s + (b.total_municipios || 0), 0), nVer = (x.vereadores || 0) + sics.reduce((s, b) => s + (b.vereadores || 0), 0);
     quem = `${nf(nMun)} municípios${sics.length ? ` de ${nf(1 + sics.length)} estados` : ""}${nVer ? ` · ${nf(nVer)} vereadores` : ""}`;
     tag = sics.length <= 2 ? eLista(["Ceará", ...sics.map(N)]) : `${nf(1 + sics.length)} estados`;
-    valorRot = `câmaras municipais, registrado em ${x.ano}, em valores de hoje`;
+    valorRot = `câmaras municipais · empenhado em ${x.ano}, valores de hoje`;
     // média por vereador de todos os estados (câmara ÷ vereadores), em vez de um quadro por estado
     const comVer = [x, ...sics].filter((e) => e.por_vereador && e.vereadores);
     const mediaVer = comVer.length ? comVer.reduce((s, e) => s + e.por_vereador.valor * e.vereadores, 0) / comVer.reduce((s, e) => s + e.vereadores, 0) : null;
@@ -188,12 +188,15 @@ function cartao(id, x, T) {
   }
   // municípios: o valor JÁ REGISTRADO (o mesmo do mapa); o estimado fica só no contador
   const sicM = id === "municipios" ? sicEsferas(T) : [];
+  // informativo: do empenhado, quanto já foi efetivamente pago (Ceará) ou liquidado (SICONFI)
+  const pagoLiq = id === "municipios" && x.cobertura ? hoje((x.pago_ano || 0) + sicM.reduce((s, b) => s + (b.liquidado_ano || 0), 0)) : 0;
   const valor = id === "municipios" ? (x.cobertura ? curto(hoje((x.registrado_ano ?? x.total_ano) + sicM.reduce((s, b) => s + (b.registrado_ano || 0), 0))) : "—") : curto((x.historico || []).find((h) => h[0] === x.ano)?.[1] ?? x.total_ano);   // deputados/senadores: o mesmo valor da barra e do site (valores de hoje)
   const hist = sicM.length ? somaHist(x.historico, ...sicM.map((b) => b.historico)) : x.historico;
   return `<article class="cartao" style="--c:${e.cor}">
     <div class="k"><span>${e.k}</span>${tag ? `<span class="tag">${tag}</span>` : ""}</div>
     <h3>${e.nome}</h3><p class="quem">${quem}</p>
     <div class="valor"><b class="num">${valor}</b><span>${valorRot}${x.meses && x.meses < 12 ? " (até agora)" : ""}</span></div>
+    ${pagoLiq ? `<p class="valor-sub">dos quais <b class="num">${curto(pagoLiq)}</b> já foram <b>pagos</b> (Ceará) ou <b>liquidados</b> (demais estados)</p>` : ""}
     ${partes}${barras(hist)}
     ${aviso}${avisoBa}${avisoDiv}
     <div class="inds">${inds.map(([r, v]) => `<div class="ind"><small>${r}</small><b class="num">${v}</b></div>`).join("")}</div>
