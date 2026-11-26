@@ -323,3 +323,12 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - **24/11:** projeto virou **aberto + acadêmico de forma explícita**. Licenças: **código MIT** (arquivo `LICENSE`),
   **dados CC BY 4.0** (`LICENCA-DADOS.md`). Adicionados `CITATION.cff` e uma seção **"Como citar"** na página Sobre
   (ABNT + curta, com data de acesso). **DOI gerado (Zenodo): 10.5281/zenodo.24486227** (https://doi.org/10.5281/zenodo.24486227), release v1.0 do hub; já preenchido no `CITATION.cff`, na seção "Como citar" e no `LICENCA-DADOS.md`. Adicionado `.zenodo.json` (título, descrição, palavras-chave, licença) para a ficha do Zenodo ficar completa; **a ficha só se atualiza numa NOVA release** (o Zenodo lê o arquivo na hora da release). Concept DOI não muda; o site usa o concept DOI. Pendência: o arquivo `LICENSE` (MIT) ainda só está no hub; propagar aos outros repositórios.
+- **26/11:** o dono trouxe um **relatório de análise em PDF** (feito por outra IA) sugerindo uma **seção de "dívida
+  pública"** e melhorias de UX, com nota preliminar 88/100. **Conclusão (avaliada e descartada pelo dono):** o
+  relatório foi escrito **sem abrir a versão atual do site** (ele mesmo admite que "o acesso automatizado não
+  carregou"); a **seção de dívida pública NÃO existe** no projeto — conferido no código de todos os repositórios, as
+  únicas menções a "dívida"/"Tesouro" são notas fiscais e o SICONFI municipal. Os indicadores citados (DBGG, DLSP,
+  juros nominais, amortização) **existem de verdade** (séries do Tesouro Nacional e do Banco Central), mas entrar em
+  dívida pública **mudaria o foco do projeto** (de "custo dos políticos" para macroeconomia) e aumentaria o custo de
+  manutenção. Montei só um **PNG de rascunho** de como ficaria (nada mexido no site). **O dono não quis seguir com
+  nenhuma das ideias** — foi só para ouvir minha opinião. Nenhuma mudança de código feita.
