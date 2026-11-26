@@ -420,3 +420,13 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   trabalhoso e frágil. **Recomendação ao dono: começar por MG** (rápido) para já ter um estado novo no ar; SP e RJ ficam
   como "possível, mas difícil" para depois. Aguardando o dono dizer se começo por MG. Deputados estaduais é 1 repo só
   (`quanto-custa-deputados-estaduais`), não precisa criar repo novo; cada assembleia tem coletor próprio (alece/alba/alrn).
+- **26/11 — MG (ALMG) em construção.** A verba de MG fica no portal `almg.gov.br` (não na API de dados abertos): lista
+  da legislatura em `.../verba-indenizatoria/?leg=20` (link `detalhe.html?id=<cod>` por deputado) e detalhe por
+  deputado/ano `detalhe.html?id=<cod>&ano=AAAA` (tabela nota a nota: Emitente, CNPJ/CPF, Data, Número, Valor). O portal
+  responde aos robôs do GitHub. **Escrito `coletor/almg.py`** (molde ALBA: verba nota a nota + subsídio fixado em lei =
+  R$ 34.774,64, 75% do federal) + bloco ALMG e `CASAS['mg']` (MG, 77 vagas, desde 2023) no config.py + integração no
+  atualizar.py (atualizar_cadastro_mg/coletar_mg/meses_mg + despacho `--uf mg`; MG coletado por último junto com BA por
+  ser lento). **Parsers validados localmente** contra as páginas reais da sondagem: 77 deputados lidos, notas com
+  fornecedor/CNPJ/valor corretos. Testes passam (15/15). Push no main; **coleta disparada** (atualizar.yml uf=mg).
+  **Pendente:** conferir o run pelos logs, depurar se preciso, **ligar MG no seletor** do site (docs/app.js) + aviso de
+  coleta/metodologia, e auditar. (Descoberta da API via várias rodadas da sondagem.yml do repo senadores.)
