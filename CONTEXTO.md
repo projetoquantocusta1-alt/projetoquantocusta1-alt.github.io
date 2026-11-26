@@ -371,3 +371,10 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   MT 56%, AM 55%, TO 50%, RO 44%, **MS 14%** — muitas prefeituras ainda não enviaram o RREO de 2025 ao Tesouro (como
   no RN); o robô diário continua preenchendo e o site mostra "sem relatório" para as que faltam. Total agora: 19
   estados nas prefeituras (CE nota-a-nota + 18 SICONFI). Próximo: Sul; por fim Sudeste.
+- **26/11 — auditoria + clareza no cartão das prefeituras:** o dono viu "valores que não batem". Auditoria: **não é
+  erro nem bug** — o hub mostra o gasto das câmaras em 3 réguas (contador = pago/liquidado + projeção até o fim do ano;
+  cartão = empenhado corrigido pelo IPCA; mapa = empenhado por estado), e isso já existia nos estados antigos. Para
+  esclarecer, a pedido do dono, o **cartão "Prefeitos e vereadores"** passou a dizer **"empenhado"** no rótulo e ganhou
+  uma linha informativa: **"dos quais R$ X já foram pagos (Ceará) ou liquidados (demais estados)"** (`pagoLiq` =
+  `hoje(pago_ano CE + Σ liquidado_ano SICONFI)`; `hub.js`/`hub.css`, classe `.valor-sub`). Ex. atual: empenhado
+  R$ 11,55 bi, dos quais R$ 9,02 bi pagos/liquidados. hub.js?v=33, hub.css?v=20. Nenhum valor de dado foi alterado.
