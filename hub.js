@@ -103,7 +103,7 @@ function barras(hist) {
   const h = (hist || []).slice(-12), mx = Math.max(...h.map((x) => x[1]), 1);
   if (!h.length) return "";
   const rot = ([a, v, completo]) => `${a}: ${curto(v)}${completo ? "" : " (até agora)"}`;
-  return `<div class="barras-box"><div class="barras" role="img" aria-label="Custo por ano, em valores de hoje: ${esc(h.map(rot).join("; "))}">${h.map((x) =>
+  return `<div class="barras-box"><div class="barras" role="img" aria-label="Custo por ano, corrigido pela inflação: ${esc(h.map(rot).join("; "))}">${h.map((x) =>
     `<i class="${x[2] ? "" : "parcial"}" style="height:${Math.max(4, (x[1] / mx) * 100)}%" data-r="${esc(rot(x))}"></i>`).join("")}</div>
     <div class="barras-anos" aria-hidden="true"><span>${h[0][0]}</span><span class="barras-leg">${BARRAS_DICA}</span><span>${h[h.length - 1][0]}</span></div></div>`;
 }
@@ -122,7 +122,7 @@ function somaHist(a, ...outras) {
     return acc.filter((h) => mb.has(h[0])).map(([ano, v, c]) => [ano, v + mb.get(ano)[1], c && mb.get(ano)[2]]); }, a || []);
 }
 // "Quem não prestou contas": prefeituras e câmaras que não enviaram as contas ou cujos números não fecham
-const GRUPOS_PEND = [["nao_enviou", "Não enviaram o relatório ou o balancete", "var(--pend-verm, #c4161c)", "v"],
+const GRUPOS_PEND = [["nao_enviou", "Não enviaram as contas", "var(--pend-verm, #c4161c)", "v"],
   ["nao_fecha", "Os números não fecham", "#D69A32", "a"], ["anterior", "Anos anteriores", "#5B7189", "c"]];
 let PEND_UF = "";
 const PEND_ABERTO = new Set();   // grupos da lista "Quem não prestou contas" abertos com "mostrar mais"
@@ -145,7 +145,7 @@ function pendencias(T) {
   }).join("");
   el.innerHTML = `<div class="p-cab"><h3>Quem não prestou contas em ${P.ano}</h3><p>Cidades que não enviaram as contas ao tribunal de contas ou ao Tesouro, ou cujos números não fecham. A obrigação de informar é de cada prefeitura e câmara.</p></div>
     <div class="abas">${abas}</div><div class="grupos">${grupos}</div>
-    <div class="p-rod">Atualizado todo dia pelos robôs · fontes: TCE-CE e Tesouro Nacional (SICONFI) · lista completa, ano a ano: ${ufs.map((u) => `<a href="${SITES.mun}${u === "CE" ? "#camaras" : `?uf=${u.toLowerCase()}#metodo`}">${NOME[u] || u}</a>`).join(" · ")} · nota de cada cidade: <a href="https://quantocustaum.com/indice/?aba=cidades">Índice de Governança</a></div>`;
+    <div class="p-rod">Atualizado todo dia pelos robôs · fontes: Tribunal de Contas do Ceará e Tesouro Nacional · lista completa, ano a ano: ${ufs.map((u) => `<a href="${SITES.mun}${u === "CE" ? "#camaras" : `?uf=${u.toLowerCase()}#metodo`}">${NOME[u] || u}</a>`).join(" · ")} · nota de cada cidade: <a href="https://quantocustaum.com/indice/?aba=cidades">Índice de Governança</a></div>`;
   el.querySelectorAll("[data-pend-uf]").forEach((b) => (b.onclick = () => { PEND_UF = b.dataset.pendUf; PEND_ABERTO.clear(); pendencias(T); }));
   el.querySelectorAll("[data-pend-mais]").forEach((b) => (b.onclick = () => { PEND_ABERTO.add(b.dataset.pendMais); pendencias(T); }));
 }
@@ -159,7 +159,7 @@ function cartao(id, x, T) {
             [`faltas no Plenário em ${x.ano}`, x.faltas_plenario != null ? pct(x.faltas_plenario) : "—"]];
   } else if (id === "senadores") {
     quem = `${nf(x.cadeiras)} senadores · desde ${x.desde}`;
-    inds = [[`cota (CEAPS) em ${x.ano}`, curto(hoje(x.cota_ano))], ["maior cota do ano", x.maior_cota ? `${curto(hoje(x.maior_cota.valor))}` : "—"]];
+    inds = [[`cota parlamentar em ${x.ano}`, curto(hoje(x.cota_ano))], ["maior cota do ano", x.maior_cota ? `${curto(hoje(x.maior_cota.valor))}` : "—"]];
     if (x.maior_cota) inds[1][0] = `maior cota do ano · ${esc(x.maior_cota.nome)}`;
   } else {
     const comp = x.anos_completos || [], sics = sicEsferas(T), N = (b) => UF_NOME[b.uf] || b.uf;
@@ -180,7 +180,7 @@ function cartao(id, x, T) {
     const sb = (dv.sem_balancete || []).map(([n]) => tit(n)), df = (dv.diferenca || []).map(([n]) => tit(n));
     const P = T.pendencias;
     if (P?.total) avisoDiv = `<a class="chamada-pend" href="#pendencias"><span class="n num">${nf(P.total)}</span><span>prefeituras e câmaras com contas faltando ou que não fecham em ${P.ano}. <b>Veja a lista ↓</b></span></a>`;
-    else if (sb.length || df.length) avisoDiv = `<p class="aviso diverg">${sb.length ? `<b>Sem balancete enviado ao TCE-CE em ${x.ano}:</b> câmara${sb.length > 1 ? "s" : ""} de ${esc(sb.join(", "))} (valor pela soma das notas de empenho). ` : ""}${df.length ? `<b>Notas e balancete não batem:</b> ${esc(df.join(", "))}. ` : ""}<a href="${x.url}#camaras">ver detalhes</a></p>`;
+    else if (sb.length || df.length) avisoDiv = `<p class="aviso diverg">${sb.length ? `<b>Sem o balanço enviado ao Tribunal de Contas do Ceará em ${x.ano}:</b> câmara${sb.length > 1 ? "s" : ""} de ${esc(sb.join(", "))} (valor calculado somando as notas). ` : ""}${df.length ? `<b>As notas e o balanço não batem:</b> ${esc(df.join(", "))}. ` : ""}<a href="${x.url}#camaras">ver detalhes</a></p>`;
     const fal = Object.entries(x.faltam || {}).filter(([, l]) => l.length);
     if (x.em_coleta && !P?.total) aviso = `<p class="aviso">${x.cobertura < x.total_municipios ? `Ceará: ${nf(x.cobertura)} de ${nf(x.total_municipios)} cidades têm dados de ${x.ano}. ` : ""}${fal.length
       ? `Ceará, sem dados no TCE-CE: ${fal.map(([a, l]) => `${a} (${esc(l.map(tit).join(", "))})`).join("; ")}; o robô procura de novo todos os dias. ${comp.length ? `Por isso a série com todas as cidades começa em ${comp[0]}.` : ""}`
@@ -257,16 +257,16 @@ function painelUF() {
              linha("SEN", "var(--sen)", x.sen.n > 3 ? `3 senadores <small class="sub">(${nf(x.sen.n)} passaram pelo cargo em ${ano}, contando suplentes que assumiram)</small>` : `${nf(x.sen.n)} senadores`, curto(hoje(x.sen.custo)));
   if (x.mun) {
     const m = x.mun, completo = m.com_dados >= m.total;
-    rows += linha("MUN", "var(--mun)", `${nf(m.total)} câmaras municipais (registrado)${completo ? "" : ` <small class="sub">(${m.fonte === "SICONFI" ? `${nf(m.com_dados)} de ${nf(m.total)} enviaram ao Tesouro` : `em coleta: ${nf(m.com_dados)} de ${nf(m.total)}`})</small>`}`, m.com_dados ? curto(hoje(m.custo)) : "—");
+    rows += linha("MUN", "var(--mun)", `${nf(m.total)} câmaras municipais${completo ? "" : ` <small class="sub">(${m.fonte === "SICONFI" ? `${nf(m.com_dados)} de ${nf(m.total)} enviaram ao Tesouro` : `em coleta: ${nf(m.com_dados)} de ${nf(m.total)}`})</small>`}`, m.com_dados ? curto(hoje(m.custo)) : "—");
     if (m.gabinetes) rows += linha("", "", `Gabinetes do prefeito e do vice <small class="sub">(órgão inteiro, fora do custo dos políticos)</small>`, curto(hoje(m.gabinetes)));
     if (m.emendas != null) rows += linha("", "", "Emendas recebidas pelos municípios", m.com_dados ? curto(hoje(m.emendas)) : "—");
-    if (m.fonte === "SICONFI") rows += linha("", "", `<span class="sub">Dados do Tesouro Nacional (SICONFI): sem gabinetes nem emendas para este estado.</span>`, "");
+    if (m.fonte === "SICONFI") rows += linha("", "", `<span class="sub">Dados do Tesouro Nacional: ainda sem os gabinetes e as emendas deste estado.</span>`, "");
     if (x.por_habitante) rows += linha("", "", "Por habitante, no ano", brl(hoje(x.por_habitante), 2), "vermelho");
   } else {
     rows += linha("", "", `<span class="sub">Prefeitos e vereadores deste estado ainda não estão no projeto (por enquanto, ${eLista(Object.entries(ESTADO.dados.ufs).filter(([, v]) => v.mun).map(([u]) => UF_NOME[u] || u))}).</span>`, "");
   }
   rows += linha("", "", "Custo médio por político federal, por mês", x.por_mes ? brl(hoje(x.por_mes)) : "—");
-  $("#uf-painel").innerHTML = `<div class="uf-cab"><small>Estado selecionado · ${ano} até agora · valores de hoje</small><h3>${esc(M.ufs[u][0])}</h3></div>
+  $("#uf-painel").innerHTML = `<div class="uf-cab"><small>Estado selecionado · ${ano} até agora · corrigido pela inflação</small><h3>${esc(M.ufs[u][0])}</h3></div>
     <table class="uf-linhas"><tbody>${rows}</tbody></table>
     <div class="uf-links"><a href="${SITES.dep}?uf=${u}&pag=deputados">Deputados de ${u} →</a><a class="sec2" href="${SITES.sen}?uf=${u}#senadores">Senadores de ${u} →</a>${x.mun ? `<a class="sec2" href="${SITES.mun}${u === "CE" ? "" : "?uf=" + u.toLowerCase()}">Cidades ${UF_DO[u] || u} →</a>` : ""}</div>`;
 }
