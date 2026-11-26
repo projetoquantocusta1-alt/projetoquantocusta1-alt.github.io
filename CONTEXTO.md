@@ -359,3 +359,15 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   `quanto-custa-nucleo/web/tema.css` e os `tema.css`/CSS de deputados, senadores, municípios e estaduais). Subidas as
   versões de cache (`?v=`) dos CSS/JS alterados em todos os sites, para o navegador pegar o novo visual (era por isso
   que o layout parecia "desatualizado" — cache antigo).
+- **26/11 — Centro-Oeste + Norte NO AR:** os 10 estados terminaram a 1ª coleta e foram **registrados e publicados**.
+  Feito: `SICONFI` do `robo/mensageiro.py` + mapas `UF_NOME/UF_DO/UF_EM` do `hub.js` (os 10 adicionados); seletor
+  `#f-uf` e mapa `ESTADOS` de `quanto-custa-municipios/docs/index.html` (uf.js?v=1 para cada); textos fixos do hub
+  index.html atualizados de "9 estados do Nordeste" para **19 estados** (Nordeste+Norte+Centro-Oeste), subtítulo do
+  menu "prefeituras e câmaras de 19 estados". Mensageiro rodado localmente (lê raw.githubusercontent): os 10 entraram
+  com status "ok" e valores reais; `totais_hub.json`/`estados.json` commitados. hub.js?v=32. Push hub+municipios
+  (main+dev). **Auditoria dos 10: limpa** — 0 câmara negativa sem aviso, 0 câmara>gasto_total; R$/vereador altos só
+  em cidades ricas reais (Canaã dos Carajás e Parauapebas/PA, Rio Verde e Senador Canedo/GO, Rondonópolis/MT). 
+  **Cobertura 2025 varia muito** (adesão ao SICONFI): alta em AC 100%, PA 97%, GO 96%, AP 94%, RR 87%; baixa em
+  MT 56%, AM 55%, TO 50%, RO 44%, **MS 14%** — muitas prefeituras ainda não enviaram o RREO de 2025 ao Tesouro (como
+  no RN); o robô diário continua preenchendo e o site mostra "sem relatório" para as que faltam. Total agora: 19
+  estados nas prefeituras (CE nota-a-nota + 18 SICONFI). Próximo: Sul; por fim Sudeste.
