@@ -332,3 +332,13 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   dívida pública **mudaria o foco do projeto** (de "custo dos políticos" para macroeconomia) e aumentaria o custo de
   manutenção. Montei só um **PNG de rascunho** de como ficaria (nada mexido no site). **O dono não quis seguir com
   nenhuma das ideias** — foi só para ouvir minha opinião. Nenhuma mudança de código feita.
+- **26/11 — IDEIA FUTURA (não fazer agora):** tornar o **Índice de Transparência e Governança Pública** mais
+  **acadêmico/rigoroso**. Motivação: o dono vai estudar mais sobre índices de governança pública e recebeu um
+  **excelente feedback de um doutor**; quer aprimorar essa parte aos poucos, com foco acadêmico. Direções conversadas
+  (para quando o dono quiser): (1) ancorar a metodologia em referências/frameworks existentes (ex.: Escala Brasil
+  Transparente da CGU, Open Budget Index, Worldwide Governance Indicators); (2) deixar explícito o **construto** medido
+  e separar bem **transparência** de **governança** (são conceitos diferentes); (3) justificar pesos e método de
+  agregação, tratar dados faltantes, e fazer **análise de sensibilidade** (o ranking muda muito se os pesos mudam?);
+  (4) **nota metodológica/apêndice técnico** versionado, com limitações explícitas ("o que o índice NÃO mede"); (5)
+  validação externa (já feito no Ceará conferindo com o TCE-CE centavo a centavo). **Status: só conversa; o dono pediu
+  para não implementar nada ainda.**
