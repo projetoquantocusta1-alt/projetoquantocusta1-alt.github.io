@@ -4,7 +4,7 @@
 "leia o CONTEXTO.md do repositório projetoquantocusta1-alt.github.io". Ele tem tudo para continuar sem reler
 conversas antigas. **REGRA: toda e qualquer mudança (código, dados, layout, regra, auditoria) é registrada aqui**, no histórico (§11), no mesmo passo em que é publicada no GitHub. Sem exceção.
 
-Última atualização: 2026-11-25.
+Última atualização: 2026-11-26.
 
 ---
 
@@ -124,7 +124,11 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - Ao mudar um arquivo servido (js/css), **subir o `?v=N`** nos HTML que o referenciam (cache).
 - `git reset --hard` costuma ser bloqueado pelo modo automático — usar `git merge --ff-only FETCH_HEAD`.
 
-## 9. Estado atual (2026-11-25, depois da auditoria)
+## 9. Estado atual (2026-11-26, depois da auditoria das 2h)
+
+- **Auditoria de 26/11 (2h de Brasília, agendada pelo dono):** robôs ok (Mensageiro 22:27 UTC ok; prefeituras AL/PI já de 26/11,
+  as outras rodam de madrugada); 120 testes ok; `robo/auditoria.py` 111 ok / 0 erros / 30 informativos; 20 páginas sem erro de JS
+  nem rolagem lateral (computador e celular). Correções nos deputados estaduais: ver §11 (26/11).
 
 - **Auditoria de 25/11:** robôs ok (deputados, senadores, municípios CE + 8 estados e estaduais gravaram em 25/11; dívida e
   devedores em 24/11, como previsto); 114 testes ok; `robo/auditoria.py` com os dados de hoje: 111 ok / 0 erros / 30 informativos
@@ -177,6 +181,16 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
 - Pendência antiga (CE prefeituras): gabinete do prefeito, população, fornecedores (itens "A3/A6/A8").
 
 ## 11. Histórico recente (resumo)
+
+- **26/11 (auditoria das 2h):** **deputados estaduais, "Todos os estados": o contador em tempo real começava em 1º/out para os 3
+  estados** (usava o mês do estado mais atrasado, o RN, com dados só até set), embora CE (folha até out) e BA (até nov) já tivessem
+  publicado mais meses → mostrava ~R$ 86,7 mi, uns R$ 3,6 mi a mais que a soma dos três estados. Agora cada estado corre a partir
+  do mês seguinte à última folha DELE (`ult_por_uf` na junção dos resumos) e o "Todos" = CE + BA + RN (R$ 83,1 mi às 2h). A nota
+  diz "dados até Nov/2026 (Rio Grande do Norte: até Set/2026)". Também: campo de busca "Nome do deputado" (cortava no celular) e
+  aviso "dados sendo coletados" com cantos normais no celular (era uma pílula de 4 linhas). `app.js?v=14`, `estaduais.css?v=5`.
+  **Para o dono decidir (não mudado):** no hub, o valor das câmaras e dos gabinetes do CE ainda é o "registrado" sem correção
+  (ex.: gabinetes R$ 653 mi no hub x R$ 662,1 mi na página do CE, em valores de hoje) — é assim de propósito para o cartão bater com
+  o mapa; corrigir exigiria mudar o Mensageiro e o mapa juntos.
 
 - **25/11 (auditoria de sempre + experiência do usuário):** (1) **Dívida pública: "Valores de hoje" corrigia só até set/2026**
   (os outros sites usam 10/2026): a tabela mensal termina no último mês da dívida, e o IPCA de outubro ficava de fora. O robô
