@@ -378,3 +378,11 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   uma linha informativa: **"dos quais R$ X já foram pagos (Ceará) ou liquidados (demais estados)"** (`pagoLiq` =
   `hoje(pago_ano CE + Σ liquidado_ano SICONFI)`; `hub.js`/`hub.css`, classe `.valor-sub`). Ex. atual: empenhado
   R$ 11,55 bi, dos quais R$ 9,02 bi pagos/liquidados. hub.js?v=33, hub.css?v=20. Nenhum valor de dado foi alterado.
+- **26/11 — linguagem simples (início):** decisão do dono de deixar o site explicativo, que "qualquer pessoa entenda",
+  guardando os termos técnicos/jargão para o **modo acadêmico** (futuro). Primeira reescrita, no cartão das prefeituras
+  (hub.js, hub.js?v=34): o rótulo do valor virou "o que as câmaras municipais separaram para gastar em {ano}, já
+  corrigido pela inflação" (era "empenhado... valores de hoje") e o informativo virou "desse valor, R$ X já saíram de
+  fato dos cofres" (era "pagos/liquidados"). **Regra combinada:** frase simples na frente; termo técnico só como apoio
+  (ideia: tracinho pontilhado com mini-glossário) ou no modo acadêmico. **Pendente (quando o dono aprovar o tom):**
+  estender para o aviso do SICONFI e o quadro "por vereador" do mesmo cartão, depois contadores e demais cartões
+  (deputados: cota/subsídio; prefeituras: SICONFI/RREO/função Legislativa; "valores de hoje (IPCA)").
