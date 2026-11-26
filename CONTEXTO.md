@@ -342,3 +342,14 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   (4) **nota metodológica/apêndice técnico** versionado, com limitações explícitas ("o que o índice NÃO mede"); (5)
   validação externa (já feito no Ceará conferindo com o TCE-CE centavo a centavo). **Status: só conversa; o dono pediu
   para não implementar nada ainda.**
+- **26/11 — EXPANSÃO (Centro-Oeste + Norte, em andamento):** decisão do dono de **crescer a cobertura primeiro**
+  (largura antes de profundidade). Criados e populados **10 novos repositórios** de municípios pelo SICONFI, no mesmo
+  molde dos do Nordeste (só muda o bloco ESTADO do `config.py` e o CFG do `docs/uf.js`; já com a marca "Quanto Custa"):
+  **Centro-Oeste** `quanto-custa-municipios-go` (GO, IBGE 52, 246 mun., TCM-GO), `-mt` (MT, 51, 141, TCE-MT),
+  `-ms` (MS, 50, 79, TCE-MS); **Norte** `-ac` (AC, 12, 22, TCE-AC), `-am` (AM, 13, 62, TCE-AM), `-ap` (AP, 16, 16,
+  TCE-AP), `-pa` (PA, 15, 144, TCM-PA), `-ro` (RO, 11, 52, TCE-RO), `-rr` (RR, 14, 15, TCE-RR), `-to` (TO, 17, 139,
+  TCE-TO). Push feito no `main` de cada um; **primeira coleta disparada** (`atualizar.yml` com `semanal=sim`) nos
+  servidores do GitHub (testes passaram; coletando). **Pendente do dono:** ligar o **Pages** (main /docs) nos 10.
+  **Pendente meu (quando os dados chegarem e o Pages estiver ligado):** registrar os 10 no seletor da página única
+  dos municípios (`quanto-custa-municipios/docs/index.html`: `#f-uf` + `ESTADOS`), no hub (`robo/mensageiro.py`
+  SICONFI/CHAVES_MUN e `hub.js` UF_NOME/UF_DO/UF_EM) e fazer a auditoria. Depois: Sul; por fim Sudeste (SP/MG grandes).
