@@ -398,3 +398,14 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   "função Legislativa (SICONFI)"→"a parte da prefeitura gasta com a câmara"; "IPCA/valores de hoje"→"corrigido pela
   inflação"; pago/liquidado/registrado→"já saiu dos cofres"/"só reservado no orçamento") e os rótulos do painel do
   mapa, das pendências ("Não enviaram as contas") e do aviso de divergência. TCE-CE e CNPJ ficam (definidos/comuns).
+- **26/11 — revisão de segurança (a pedido do dono).** Estrutura: site estático (GitHub Pages), sem servidor, sem
+  banco, sem login → ninguém altera o site sem acesso de escrita ao GitHub; o risco real de "tomada" é a conta do
+  GitHub/DNS (recomendado 2FA), não o código. **Achado e CORRIGIDO: XSS armazenado** — os rótulos de KPI/destaque
+  (rot/obs) iam para innerHTML sem `esc()`, e nomes de fornecedor (dado externo) chegavam neles; um nome com HTML
+  malicioso rodaria script no navegador do visitante. Escapado no sink `kpis()`/`k()` de deputados (app.js?v=28),
+  senadores (v=13), municípios (v=14) e estaduais (v=15); rótulos nunca usam HTML, sem regressão. **Checado e OK:**
+  sem segredo hardcoded (token ALRN lido em runtime); busca, tabelas e modal de CNPJ do hub escapam; scripts externos
+  só o GoatCounter (resto é local em `vendor/`); nenhum workflow com gatilho `pull_request`; sondagem usa env var
+  (padrão seguro, sem injeção de comando). **Hardening opcional (não são falhas):** fixar versões exatas das deps
+  (requests/pytest usam `>=`); SRI no GoatCounter; CSP via meta; escapar também os KPIs dos `uf.js` dos 18 estados
+  SICONFI (hoje só mostram nome de cidade do IBGE + números, risco ~nulo).
