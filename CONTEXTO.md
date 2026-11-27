@@ -440,3 +440,19 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   (espelha a Bahia) + MG nas descrições de SEO. Render local (Playwright): seletor, ranking, ficha e metodologia de MG
   **sem erro de JS**. Push no main (`estaduais`). **Lição:** portais de assembleia/governo podem cair de madrugada —
   coletar em horário comercial BR. Estados estaduais agora: **CE, BA, RN, MG**.
+- **27/11 — DÍVIDA MUNICIPAL (nova seção), começando pela Bahia.** Dono pediu a dívida de cada cidade (composição,
+  limite legal, evolução e previsão). Fonte: **SICONFI, RGF Anexo 2 (Dívida Consolidada Líquida)** — mesma API do RREO,
+  só muda o relatório (a dívida NÃO está no RREO como ele achava, e sim no RGF). Sondagem confirmou o formato (Salvador
+  2021–2025, Fortaleza, Abaré): a API já traz DC, composição (contratual/precatórios/parcelamentos/outras), deduções de
+  caixa, DCL, RCL, **% e limite de 120% da RCL já calculados**. **Feito na BA (modelo p/ os outros):**
+  `coletor/siconfi.py` ganhou `rgf2()/ler_rgf2()`; `atualizar.py` ganhou `coletar_rgf()` (mesmo esquema do RREO, cache por
+  ano, 60% do tempo RREO / 40% dívida) e, no `montar()`, o bloco de dívida em cada `m/<ibge>.json` (com **previsão por
+  tendência linear**, marcada como estimativa) + `divida.json` p/ o ranking. **UI** no `docs/uf.js` da BA (é igual em todos
+  os estados menos o CFG): aba **"Dívida"** (ranking das mais endividadas, com selo dentro/alerta/acima) + **bloco na
+  ficha** de cada cidade (quanto deve, composição, barra do teto, evolução + previsão), CSS auto-contido injetado pelo
+  próprio uf.js, vermelho #c4161c, valores nominais. A aba some quando ainda não há dado. Render local (página unificada
+  BA, Salvador real): ranking, ficha, barra, composição e gráfico **sem erro de JS**. Push BA (uf.js v=5→v=6 no
+  `index.html` do repo unificado) + coleta disparada (atualizar.yml). **Pendente:** (1) conferir a coleta real da BA e a
+  aba no ar; (2) **propagar** o coletor + `uf.js` aos outros 17 estados SICONFI (uf.js é idêntico, só trocar o CFG; bumpar
+  as versões no `index.html` unificado); (3) **CE** (vem do TCE, não tem RGF — buscar a dívida no SICONFI à parte);
+  (4) ranking geral de dívida no hub. Container não acessa o Tesouro; tudo roda no GitHub Actions. Task #16.
