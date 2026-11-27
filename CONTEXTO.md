@@ -428,5 +428,15 @@ aviso"**: KPI "Sem relatório no Tesouro: N", nota 0 no Índice com prova, e o m
   atualizar.py (atualizar_cadastro_mg/coletar_mg/meses_mg + despacho `--uf mg`; MG coletado por último junto com BA por
   ser lento). **Parsers validados localmente** contra as páginas reais da sondagem: 77 deputados lidos, notas com
   fornecedor/CNPJ/valor corretos. Testes passam (15/15). Push no main; **coleta disparada** (atualizar.yml uf=mg).
-  **Pendente:** conferir o run pelos logs, depurar se preciso, **ligar MG no seletor** do site (docs/app.js) + aviso de
-  coleta/metodologia, e auditar. (Descoberta da API via várias rodadas da sondagem.yml do repo senadores.)
+  (Descoberta da API via várias rodadas da sondagem.yml do repo senadores.)
+- **27/11 — MG NO AR.** O que travava: as tentativas de coleta de **madrugada** (23h–00h BRT) falhavam porque o portal
+  `www.almg.gov.br` **não aceitava conexão** àquela hora (run noturno #20: Errno 101 IPv6; #21, já com IPv4 forçado em
+  `coletor/http.py`, ConnectTimeout — "fora do ar nesta execução"). Não era bloqueio de IP (a sondagem já lera os 77
+  deputados de dia). **Rodando de dia (run agendado das 08:32 e o manual das 10h BRT) a ALMG respondeu e coletou tudo.**
+  Correção mantida: `coletor/http.py` força IPv4 (`allowed_gai_family=AF_INET`). **Auditoria MG 2025:** 75 deputados com
+  verba, R$ 27,2 mi no ano (~R$ 30 mil/mês cada), sem negativos, sem nota sem fornecedor, fornecedores com CNPJ, subsídio
+  R$ 34.774,64. Anos 2023–2026. **Ligado no site:** o seletor é dinâmico (lê `estados.json`, que o `gravar_estados` já
+  preenche), então MG entrou sozinho; só foi preciso o **bloco de metodologia** `data-uf-texto="mg"` no `index.html`
+  (espelha a Bahia) + MG nas descrições de SEO. Render local (Playwright): seletor, ranking, ficha e metodologia de MG
+  **sem erro de JS**. Push no main (`estaduais`). **Lição:** portais de assembleia/governo podem cair de madrugada —
+  coletar em horário comercial BR. Estados estaduais agora: **CE, BA, RN, MG**.
