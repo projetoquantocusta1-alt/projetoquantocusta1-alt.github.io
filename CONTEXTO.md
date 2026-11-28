@@ -128,8 +128,10 @@ nota 0 no Índice com prova, mapa "X de Y enviaram"). Os que não enviaram vão 
 - **Dívida: a DCL pode ser negativa** (cidade com mais caixa que dívida) — não cortar em zero; e a **previsão** mira
   `max(anos)+1` para não colidir com o ano corrente parcial. Os `>200%` da RCL que apareceram (ex.: Itapebi, Caetité)
   são **reais** (consistentes com a API), não erro.
-- **População no divida.json:** BA e os 18 SICONFI usam a população do IBGE (`populacao.populacao_no_ano`); o CE usa a
-  do próprio RGF. Estado que coletou antes de a coluna existir fica sem população até re-montar.
+- **Dívida por ano (`por_ano`):** o `divida.json` de cada estado traz, por cidade, `por_ano = {ano: [dcl, % da receita,
+  população, fechado(1/0)]}` (população vem do próprio RGF). O ranking no site usa o **ano do filtro** via `por_ano`;
+  `acima`/`alerta` saem do % (120% teto, 108% alerta). Dado antigo sem `por_ano` cai no ano mais recente (fallback no JS).
+  Estado só passa a trocar de ano no filtro **depois de re-coletar** com o código novo (daí disparar os `atualizar.yml`).
 - **Casos que NÃO são erro** (o dono mandou manter): câmara "zerada/negativa" (já excluída da soma); "liquidado >
   empenhado" (restos a pagar); custo por vereador alto nas capitais; empenhado do ano em andamento ≈ ano fechado
   (empenham o ano todo no começo); cobertura baixa de um estado (municípios que não entregaram, não é bug).
@@ -137,8 +139,9 @@ nota 0 no Índice com prova, mapa "X de Y enviaram"). Os que não enviaram vão 
 ## 10. Estado atual (no ar)
 
 Deputados federais; senadores; prefeituras de **19 estados** (CE + 18 SICONFI, = todo o NE, CO e N); deputados
-estaduais **CE/BA/RN/MG**; **dívida das prefeituras** nos 19 estados (ficha + ranking) + painel nacional no hub;
-dívida pública; devedores da União; Índice de Governança (prévia). Pages ligado em todos.
+estaduais **CE/BA/RN/MG**; **dívida das prefeituras** nos 19 estados (ficha + ranking, com filtro de ano) + painel
+nacional no hub; no seletor de estado há **"Todos os municípios (só a dívida)"** = ranking nacional (`docs/todos.js`,
+junta o `divida.json` dos 19); dívida pública; devedores da União; Índice de Governança (prévia). Pages ligado em todos.
 
 ## 11. Pendências e ideias → GitHub Issues
 
