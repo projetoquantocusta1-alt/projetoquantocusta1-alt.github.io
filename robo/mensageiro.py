@@ -494,6 +494,38 @@ def busca(fd: Fonte, fs: Fonte, fm: Fonte) -> list[list]:
 
 
 # ------------------------------------------------------------------ principal
+def divida_nacional(local: Path | None = None) -> dict | None:
+    """Junta o divida.json (RGF/SICONFI) dos municípios de todos os estados num resumo nacional:
+    dívida líquida somada, quantas prefeituras acima do teto / em alerta, e as mais endividadas por habitante."""
+    por_cidade, estados = [], []
+    tot = acima = alerta = com = 0
+    anos: set[int] = set()
+    for chave in CHAVES_MUN:
+        dv = Fonte(REPOS[chave], local).get("divida.json")
+        if not dv or not dv.get("municipios"):
+            continue
+        uf = dv.get("uf") or ""
+        ms = dv["municipios"]
+        com += len(ms)
+        acima += sum(1 for m in ms if m.get("acima"))
+        alerta += sum(1 for m in ms if m.get("alerta") and not m.get("acima"))
+        tot += sum(m["dcl"] for m in ms if (m.get("dcl") or 0) > 0)
+        anos.update(dv.get("anos") or [])
+        estados.append(uf)
+        for m in ms:
+            p, d = m.get("populacao"), m.get("dcl")
+            if p and d and d > 0:
+                por_cidade.append({"nome": m["nome"], "uf": uf, "code": m.get("sim") or m.get("ibge"),
+                                   "por_hab": round(d / p, 2), "dcl": r2(d), "pct": m.get("pct_dcl"),
+                                   "acima": bool(m.get("acima"))})
+    if not com:
+        return None
+    por_cidade.sort(key=lambda x: -x["por_hab"])
+    return {"estados": len(estados), "com_divida": com, "acima": acima, "em_alerta": alerta,
+            "total_dcl": r2(tot), "anos": sorted(anos), "top_por_hab": por_cidade[:12],
+            "fonte": "SICONFI (Tesouro Nacional), RGF Anexo 02"}
+
+
 def montar(local: Path | None = None, hoje: date | None = None, anterior: dict | None = None) -> dict:
     hoje = hoje or date.today()
     ano = hoje.year
@@ -528,6 +560,12 @@ def montar(local: Path | None = None, hoje: date | None = None, anterior: dict |
     mun = [es[k] for k in CHAVES_MUN if k in es]
     out["total_ano_municipios"] = r2(sum(x["total_ano"] for x in mun)) if mun else None
     out["pendencias"] = pendencias(es, ano)
+    try:
+        d = divida_nacional(local)
+        if d:
+            out["divida"] = d
+    except Exception as e:  # noqa: BLE001 — a dívida é um extra; nunca derruba o resto
+        out["status"]["divida"] = f"indisponível ({e})"
     bases = [es[k]["dava"] for k in ("deputados", "senadores") if es.get(k, {}).get("dava")]
     if bases:
         base = sum(b["base"] for b in bases)

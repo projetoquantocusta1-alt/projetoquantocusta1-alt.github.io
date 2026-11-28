@@ -378,6 +378,22 @@ async function buscar() {
   return r;
 }
 
+function divida(T) {
+  const D = T.divida, sec = $("#divida-hub");
+  if (!sec) return;
+  if (!D || !D.com_divida) { sec.hidden = true; return; }
+  sec.hidden = false;
+  $("#divida-kpis").innerHTML = [
+    [curto(D.total_dcl), "devidos pelas prefeituras", `dívida líquida somada · ${nf(D.com_divida)} cidades de ${D.estados} estado${D.estados > 1 ? "s" : ""}`],
+    [nf(D.acima), D.acima === 1 ? "prefeitura acima do teto legal" : "prefeituras acima do teto legal", "devem mais de 120% da receita de um ano"],
+    [nf(D.em_alerta), "em alerta", "perto do teto (108% da receita ou mais)"],
+  ].map(([v, r, o]) => `<div class="d-ind"><b class="num">${v}</b><span class="d-r">${esc(r)}</span><span class="d-o">${esc(o)}</span></div>`).join("");
+  const link = (c) => c.uf === "CE" ? `${SITES.mun}#municipio/${c.code}` : `${SITES.mun}?uf=${(c.uf || "").toLowerCase()}#municipio/${c.code}`;
+  $("#divida-top").innerHTML = (D.top_por_hab || []).map((c, i) =>
+    `<li><span class="pos">${i + 1}</span><a href="${link(c)}">${esc(semCaixaAlta(c.nome))}</a> <span class="uf">${esc(c.uf)}</span><span class="d-val"><b>${brl(c.por_hab)}</b> por habitante${c.acima ? ' · <span class="d-acima">acima do teto</span>' : ""}</span></li>`).join("");
+  $("#divida-rod").innerHTML = `Dívida consolidada líquida (o que a prefeitura deve a longo prazo, menos o dinheiro em caixa), do <b>RGF</b> entregue ao Tesouro Nacional (SICONFI). Os estados entram à medida que o robô coleta. Veja cada cidade na aba <b>Dívida</b> de <a href="${SITES.mun}">Prefeituras e câmaras</a>.`;
+}
+
 async function iniciar() {
   let T;
   try {
@@ -396,6 +412,7 @@ async function iniciar() {
   const sl = $("#dava-pct"); if (sl) { if (T.dava) sl.value = Math.round(T.dava.percentual * 100); sl.oninput = () => { DAVA_PCT = sl.value / 100; dava(T); }; }
   $("#cartoes").innerHTML = ["deputados", "senadores", "municipios"].map((k) => cartao(k, T.esferas[k], T)).join("");
   pendencias(T);
+  divida(T);
   dava(T);
   const at = Object.entries(T.esferas).map(([k, v]) => v.atualizado_em ? `${ESF[k]?.nome || (k.startsWith("municipios_") ? `Prefeituras ${UF_DO[v.uf] || v.uf}` : k)}: ${new Date(v.atualizado_em).toLocaleString("pt-BR")}` : "").filter(Boolean);
   $("#atualizacao").textContent = `Totais reunidos em ${new Date(T.gerado_em).toLocaleString("pt-BR")}. Última atualização de cada site — ${at.join(" · ")}.`;
